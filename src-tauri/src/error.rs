@@ -13,6 +13,18 @@ pub enum AppError {
 
     #[error("Tray error: {0}")]
     Tray(String),
+
+    #[error("Hotkey error: {0}")]
+    Hotkey(String),
+
+    #[error("Audio error: {0}")]
+    Audio(String),
+
+    #[error("Transcription error: {0}")]
+    Transcription(String),
+
+    #[error("Output error: {0}")]
+    Output(String),
 }
 
 impl From<AppError> for String {
