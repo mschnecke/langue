@@ -1,2 +1,7 @@
-# langue
-AI driven transiption and translation. 
+# Pisum Langue
+
+AI driven transiption and translation.
+
+
+
+
