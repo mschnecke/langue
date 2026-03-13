@@ -21,6 +21,9 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
+      "windows": {
+        "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd"
+      },
       "runtimeArgs": ["run", "tauri:dev"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",

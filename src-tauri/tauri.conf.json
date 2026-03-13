@@ -20,6 +20,7 @@
         "minWidth": 500,
         "minHeight": 400,
         "resizable": true,
+        "maximizable": false,
         "visible": false,
         "center": true
       }
