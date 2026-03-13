@@ -16,11 +16,11 @@ use crate::audio;
 use crate::error::AppError;
 use crate::tray;
 
-/// Maximum recording duration (10 minutes)
-const MAX_RECORDING_DURATION: Duration = Duration::from_secs(600);
-
 /// Minimum recording duration to trigger transcription (50ms)
 const MIN_RECORDING_DURATION: Duration = Duration::from_millis(50);
+
+/// Debounce window for toggle mode to prevent key-repeat from rapidly toggling
+const TOGGLE_DEBOUNCE: Duration = Duration::from_millis(200);
 
 // Thread-local hotkey manager - must be used on the main thread only
 thread_local! {
@@ -45,6 +45,9 @@ static IS_TRANSCRIBING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
 /// App handle for use in the event loop
 static APP_HANDLE: Lazy<Mutex<Option<AppHandle>>> = Lazy::new(|| Mutex::new(None));
+
+/// Last press timestamp for toggle debounce
+static LAST_TOGGLE_PRESS: Lazy<Mutex<Option<Instant>>> = Lazy::new(|| Mutex::new(None));
 
 /// Initialize the hotkey manager on the main thread
 pub fn init(app: &AppHandle) -> Result<(), AppError> {
@@ -136,12 +139,51 @@ fn start_event_loop() {
                 let registry = REGISTRY.lock().unwrap();
                 if let Some((registered_id, _)) = registry.as_ref() {
                     if *registered_id == event.id {
+                        let mode = crate::SETTINGS
+                            .read()
+                            .map(|s| s.recording_mode.clone())
+                            .unwrap_or(crate::config::schema::RecordingMode::HoldToRecord);
+
                         match event.state() {
                             HotKeyState::Pressed => {
-                                handle_hotkey_press();
+                                match mode {
+                                    crate::config::schema::RecordingMode::HoldToRecord => {
+                                        handle_hotkey_press();
+                                    }
+                                    crate::config::schema::RecordingMode::Toggle => {
+                                        // Debounce: ignore rapid repeated presses (key repeat)
+                                        {
+                                            let mut last = LAST_TOGGLE_PRESS.lock().unwrap();
+                                            if let Some(prev) = *last {
+                                                if prev.elapsed() < TOGGLE_DEBOUNCE {
+                                                    continue;
+                                                }
+                                            }
+                                            *last = Some(Instant::now());
+                                        }
+
+                                        let is_recording = {
+                                            let recorder = ACTIVE_RECORDER.lock().unwrap();
+                                            recorder.is_some()
+                                        };
+
+                                        if is_recording {
+                                            stop_and_transcribe();
+                                        } else {
+                                            handle_hotkey_press();
+                                        }
+                                    }
+                                }
                             }
                             HotKeyState::Released => {
-                                handle_hotkey_release();
+                                match mode {
+                                    crate::config::schema::RecordingMode::HoldToRecord => {
+                                        stop_and_transcribe();
+                                    }
+                                    crate::config::schema::RecordingMode::Toggle => {
+                                        // Ignore release in toggle mode
+                                    }
+                                }
                             }
                         }
                     }
@@ -187,9 +229,14 @@ fn handle_hotkey_press() {
 
             tray::set_recording_state(true);
 
-            // Spawn max-duration timer
-            std::thread::spawn(|| {
-                std::thread::sleep(MAX_RECORDING_DURATION);
+            // Spawn max-duration timer using configurable duration
+            let max_secs = crate::SETTINGS
+                .read()
+                .map(|s| s.max_recording_duration_secs)
+                .unwrap_or(600);
+            let max_duration = Duration::from_secs(max_secs);
+            std::thread::spawn(move || {
+                std::thread::sleep(max_duration);
                 let has_recorder = {
                     let recorder = ACTIVE_RECORDER.lock().unwrap();
                     recorder.is_some()
@@ -198,9 +245,12 @@ fn handle_hotkey_press() {
                     tracing::warn!("Max recording duration reached, auto-stopping");
                     tray::send_info_notification(
                         "Recording Auto-Stopped",
-                        "Maximum recording duration (10 min) reached. Transcribing...",
+                        &format!(
+                            "Maximum recording duration ({} sec) reached. Transcribing...",
+                            max_secs
+                        ),
                     );
-                    handle_hotkey_release();
+                    stop_and_transcribe();
                 }
             });
         }
@@ -221,8 +271,8 @@ fn handle_hotkey_press() {
     }
 }
 
-/// Handle hotkey release — stop recording, encode audio
-fn handle_hotkey_release() {
+/// Stop recording, encode audio, and transcribe. Called from both modes and the max-duration timer.
+fn stop_and_transcribe() {
     let recorder = {
         let mut active = ACTIVE_RECORDER.lock().unwrap();
         active.take()
@@ -251,7 +301,7 @@ fn handle_hotkey_release() {
     }
 
     tracing::info!(
-        "Hotkey released — stopping recording ({:?})",
+        "Stopping recording ({:?})",
         recording_duration
     );
 

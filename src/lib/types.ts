@@ -6,6 +6,8 @@ export interface AppSettings {
   presets: Preset[];
   activePresetId: string;
   providers: ProviderConfig[];
+  recordingMode: 'holdToRecord' | 'toggle';
+  maxRecordingDurationSecs: number;
 }
 
 export interface Preset {

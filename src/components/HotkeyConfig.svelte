@@ -34,7 +34,11 @@
 <div class="space-y-4">
   <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Hotkey</h2>
   <p class="text-xs text-gray-500">
-    Hold this key combination to record, release to transcribe and paste.
+    {#if settings.recordingMode === 'toggle'}
+      Press this key combination to start recording. Press again to transcribe and paste.
+    {:else}
+      Hold this key combination to record, release to transcribe and paste.
+    {/if}
   </p>
 
   {#if recording}

@@ -25,6 +25,12 @@ pub struct AppSettings {
 
     #[serde(default)]
     pub providers: Vec<ProviderConfig>,
+
+    #[serde(default = "default_recording_mode")]
+    pub recording_mode: RecordingMode,
+
+    #[serde(default = "default_max_recording_duration_secs")]
+    pub max_recording_duration_secs: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +69,13 @@ pub enum AudioFormat {
     Wav,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum RecordingMode {
+    HoldToRecord,
+    Toggle,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProviderType {
@@ -79,6 +92,8 @@ impl Default for AppSettings {
             presets: super::presets::get_builtin_presets(),
             active_preset_id: default_active_preset_id(),
             providers: Vec::new(),
+            recording_mode: default_recording_mode(),
+            max_recording_duration_secs: default_max_recording_duration_secs(),
         }
     }
 }
@@ -103,4 +118,12 @@ fn default_audio_format() -> AudioFormat {
 
 fn default_active_preset_id() -> String {
     "de-transcribe".to_string()
+}
+
+fn default_recording_mode() -> RecordingMode {
+    RecordingMode::HoldToRecord
+}
+
+fn default_max_recording_duration_secs() -> u64 {
+    600 // 10 minutes
 }
