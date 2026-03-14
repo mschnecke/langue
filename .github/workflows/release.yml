@@ -36,6 +36,7 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -70,19 +71,22 @@ jobs:
 
           echo "Bumping version from $CURRENT_VERSION to $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
 
           # Update package.json
-          npm version "$NEW_VERSION" --no-git-tag-version
+          npm version $NEW_VERSION --no-git-tag-version
 
           # Update Cargo.toml
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" src-tauri/Cargo.toml
 
           # Update tauri.conf.json
-          jq --arg v "$NEW_VERSION" '.version = $v' src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" src-tauri/tauri.conf.json
 
           # Update Cargo.lock
           cd src-tauri && cargo generate-lockfile && cd ..
+	  
+	  # Update Chocolatey nuspec
+          # sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" packages/chocolatey/global-hotkey.nuspec
+
 
       - name: Commit and tag
         run: |
@@ -99,7 +103,6 @@ jobs:
     if: always() && (github.event_name == 'push' || needs.bump-version.result == 'success')
     outputs:
       release_id: ${{ steps.create_release.outputs.id }}
-      tag: ${{ steps.get_version.outputs.tag }}
       version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -110,23 +113,58 @@ jobs:
         id: get_version
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            VERSION="${{ needs.bump-version.outputs.version }}"
+            echo "version=${{ needs.bump-version.outputs.version }}" >> $GITHUB_OUTPUT
           else
-            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.get_version.outputs.tag }}
+          tag_name: v${{ steps.get_version.outputs.version }}
           name: PisumLangue v${{ steps.get_version.outputs.version }}
+          body: |
+            ## PisumLangue v${{ steps.get_version.outputs.version }}
+
+            A cross-platform Hotkey-driven, system-tray-style dictation tool.
+
+            ### Installation
+
+            **macOS (Homebrew) - Recommended:**
+            ```bash
+            brew tap mschnecke/langue
+            brew install --cask langue
+            ```
+
+            **macOS (Direct Download):**
+            Download the `.pkg` installer: `PisumLangue_${{ steps.get_version.outputs.version }}_aarch64.pkg` (Apple Silicon)
+
+            **Windows (Chocolatey):**
+            ```powershell
+            choco source add -n="global-hotkey" -s="https://www.myget.org/F/mschnecke/api/v3/index.json"
+            choco install langue
+            ```
+
+            **Windows (Direct Download):**
+            Download `PisumLangue_${{ steps.get_version.outputs.version }}_x64_en-US.msi` from assets below.
+
+            ### Quick Start
+
+            - **Default hotkey:** Configure your shortcuts in the settings
+            - **Settings stored in:** `~/.pisum-langue.json`
+
+            ### Post-Installation (macOS)
+
+            Grant Accessibility permissions:
+            1. Open System Settings > Privacy & Security > Accessibility
+            2. Enable Pisum Langue in the list
+
+            ### Changelog
+            See [CHANGELOG.md](https://github.com/mschnecke/langue/blob/main/CHANGELOG.md) for details.
           draft: true
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+	  prerelease: false
+          generate_release_notes: false
 
   build-tauri:
     needs: create-release
@@ -136,18 +174,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            target: aarch64-apple-darwin
+          - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin --bundles app'
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+            arch: 'aarch64'
+          - platform: 'windows-latest'
             args: '--bundles msi'
+            arch: 'x64'
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform }}
+
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.create-release.outputs.tag }}
+          ref: v${{ needs.create-release.outputs.version }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -155,21 +194,21 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - name: Setup Rust
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
         with:
-          workspaces: 'src-tauri -> target'
+          workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
 
-      - name: Install Opus (macOS)
-        if: matrix.os == 'macos-latest'
+      - name: Install macOS dependencies
+        if: matrix.platform == 'macos-latest'
         run: brew install opus
 
       - name: Build frontend
@@ -182,32 +221,30 @@ jobs:
         with:
           args: ${{ matrix.args }}
 
-      - name: Create macOS .pkg installer
-        if: matrix.os == 'macos-latest'
+      # Build macOS .pkg installer from .app bundle
+      - name: Build macOS pkg installer
+        if: matrix.platform == 'macos-latest'
         run: |
-          chmod +x scripts/create-macos-pkg.sh
-          ./scripts/create-macos-pkg.sh
+          VERSION="${{ needs.create-release.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+
+          chmod +x packages/macos/build-package.sh
+          chmod +x packages/macos/postinstall
+          ./packages/macos/build-package.sh "$VERSION" "$ARCH"
 
       - name: Upload macOS assets to release
-        if: matrix.os == 'macos-latest'
+        if: matrix.platform == 'macos-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create-release.outputs.tag }}
-          files: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.pkg
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./dist/PisumLangue_${{ needs.create-release.outputs.version }}_${{ matrix.arch }}.pkg
 
       - name: Upload Windows assets to release
-        if: matrix.os == 'windows-latest'
+        if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create-release.outputs.tag }}
-          files: |
-            src-tauri/target/release/bundle/msi/*.msi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: ./src-tauri/target/release/bundle/msi/PisumLangue_${{ needs.create-release.outputs.version }}_x64_en-US.msi
 
   publish-release:
     needs: [create-release, build-tauri]
@@ -217,16 +254,73 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { data: releases } = await github.rest.repos.listReleases({
+            await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release_id }},
+              draft: false
             });
-            const draft = releases.find(r => r.draft && r.tag_name === '${{ needs.create-release.outputs.tag }}');
-            if (draft) {
-              await github.rest.repos.updateRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: draft.id,
-                draft: false,
-              });
-            }
+
+  update-homebrew:
+    needs: [create-release, publish-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Homebrew cask update
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          repository: mschnecke/homebrew-global-hotkey
+          event-type: update-cask
+          client-payload: '{"version": "${{ needs.create-release.outputs.version }}"}'
+
+  update-chocolatey:
+    needs: [create-release, publish-release]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows installer
+        run: |
+          $version = "${{ needs.create-release.outputs.version }}"
+          Invoke-WebRequest -Uri "https://github.com/mschnecke/global-hotkey/releases/download/v$version/GlobalHotkey_${version}_x64_en-US.msi" -OutFile "GlobalHotkey-Setup.msi"
+
+      - name: Generate checksum
+        id: checksum
+        run: |
+          $hash = (Get-FileHash -Path "GlobalHotkey-Setup.msi" -Algorithm SHA256).Hash
+          echo "sha256=$hash" >> $env:GITHUB_OUTPUT
+
+      - name: Update Chocolatey package
+        run: |
+          $version = "${{ needs.create-release.outputs.version }}"
+          $sha256 = "${{ steps.checksum.outputs.sha256 }}"
+
+          # Update chocolateyInstall.ps1
+          $installScript = Get-Content packages/chocolatey/tools/chocolateyInstall.ps1 -Raw
+          $installScript = $installScript -replace 'url64bit\s*=\s*''.*''', "url64bit = 'https://github.com/mschnecke/global-hotkey/releases/download/v$version/GlobalHotkey_${version}_x64_en-US.msi'"
+          $installScript = $installScript -replace 'checksum64\s*=\s*''.*''', "checksum64 = '$sha256'"
+          Set-Content -Path packages/chocolatey/tools/chocolateyInstall.ps1 -Value $installScript
+
+          # Update nuspec version
+          $nuspec = Get-Content packages/chocolatey/global-hotkey.nuspec -Raw
+          $nuspec = $nuspec -replace '<version>.*</version>', "<version>$version</version>"
+          Set-Content -Path packages/chocolatey/global-hotkey.nuspec -Value $nuspec
+
+      - name: Pack Chocolatey package
+        run: |
+          cd packages/chocolatey
+          choco pack
+
+      - name: Setup .NET for NuGet push
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish to MyGet
+        env:
+          MYGET_API_KEY: ${{ secrets.MYGET_API_KEY }}
+        run: |
+          $version = "${{ needs.create-release.outputs.version }}"
+          dotnet nuget push "packages/chocolatey/global-hotkey.$version.nupkg" `
+            --source "https://www.myget.org/F/mschnecke/api/v3/index.json" `
+            --api-key $env:MYGET_API_KEY
