@@ -16,7 +16,8 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_NAME="PisumLangue"
+APP_NAME="Pisum Langue"
+PKG_PREFIX="Pisum.Langue"
 BUNDLE_ID="com.pisumlangue.app"
 
 # Determine source .app location based on architecture
@@ -41,7 +42,7 @@ mkdir -p "$PKG_ROOT/Applications"
 cp -R "$APP_PATH" "$PKG_ROOT/Applications/"
 
 # Build the component package
-COMPONENT_PKG="$OUTPUT_DIR/${APP_NAME}_${VERSION}_${ARCH}_component.pkg"
+COMPONENT_PKG="$OUTPUT_DIR/${PKG_PREFIX}_${VERSION}_${ARCH}_component.pkg"
 pkgbuild \
     --root "$PKG_ROOT" \
     --identifier "$BUNDLE_ID" \
@@ -51,7 +52,7 @@ pkgbuild \
     "$COMPONENT_PKG"
 
 # Build the final distribution package (product archive)
-FINAL_PKG="$OUTPUT_DIR/${APP_NAME}_${VERSION}_${ARCH}.pkg"
+FINAL_PKG="$OUTPUT_DIR/${PKG_PREFIX}_${VERSION}_${ARCH}.pkg"
 productbuild \
     --package "$COMPONENT_PKG" \
     --identifier "${BUNDLE_ID}.installer" \
