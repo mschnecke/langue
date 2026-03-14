@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_NAME="Pisum Langue"
 PKG_PREFIX="Pisum.Langue"
-BUNDLE_ID="com.pisumlangue.app"
+BUNDLE_ID="com.pisum.langue.app"
 
 # Determine source .app location based on architecture
 if [ "$ARCH" == "aarch64" ]; then
