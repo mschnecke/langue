@@ -23,7 +23,7 @@ npm run check          # Run svelte-check type checking
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
+- [Node.js](https://nodejs.org/) 20+ (see `.nvmrc`)
 - [Rust](https://rustup.rs/) 1.70+
 - Platform-specific dependencies:
   - **Windows**: Visual Studio Build Tools
