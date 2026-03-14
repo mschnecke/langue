@@ -83,10 +83,6 @@ jobs:
 
           # Update Cargo.lock
           cd src-tauri && cargo generate-lockfile && cd ..
-	  
-	  # Update Chocolatey nuspec
-          # sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" packages/chocolatey/global-hotkey.nuspec
-
 
       - name: Commit and tag
         run: |
@@ -163,7 +159,7 @@ jobs:
             ### Changelog
             See [CHANGELOG.md](https://github.com/mschnecke/langue/blob/main/CHANGELOG.md) for details.
           draft: true
-	  prerelease: false
+          prerelease: false
           generate_release_notes: false
 
   build-tauri:
