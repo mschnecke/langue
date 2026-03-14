@@ -37,7 +37,7 @@
       "providerShortName": null,
       "minimumSystemVersion": "10.15",
       "infoPlist": {
-        "LSUIElement": true
+        "LSUIElement": "true"
       }
     },
     "icon": [
