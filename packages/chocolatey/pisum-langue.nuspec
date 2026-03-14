@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>pisum-langue</id>
-    <version>0.1.11</version>
+    <version>0.1.12</version>
     <title>Pisum Langue</title>
     <authors>Pisum Langue Team</authors>
     <owners>mschnecke</owners>

@@ -3389,7 +3389,7 @@ dependencies = [
 
 [[package]]
 name = "pisum-langue"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "arboard",
  "audiopus",
