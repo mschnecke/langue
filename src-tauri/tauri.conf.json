@@ -35,7 +35,10 @@
     "macOS": {
       "signingIdentity": null,
       "providerShortName": null,
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "infoPlist": {
+        "LSUIElement": true
+      }
     },
     "icon": [
       "icons/32x32.png",
