@@ -19,6 +19,9 @@ on:
         description: 'Specific version (optional, overrides bump_type)'
         required: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
 
