@@ -1,0 +1,23 @@
+#!/bin/bash
+# scripts/postinstall
+# Runs after the .pkg installation completes
+
+APP_PATH="/Applications/PisumLangue.app"
+
+# Remove quarantine attribute (allows app to run without Gatekeeper warning)
+if [ -d "$APP_PATH" ]; then
+    xattr -rd com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+fi
+
+# Notify user about Accessibility permissions
+osascript -e 'display notification "Please grant Accessibility permissions in System Settings > Privacy & Security > Accessibility" with title "PisumLangue Installed" subtitle "One more step needed"' 2>/dev/null || true
+
+# Launch PisumLangue after installation
+if [ -d "$APP_PATH" ]; then
+    CONSOLE_USER=$(stat -f "%Su" /dev/console)
+    if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ]; then
+        sudo -u "$CONSOLE_USER" open "$APP_PATH" 2>/dev/null || true
+    fi
+fi
+
+exit 0

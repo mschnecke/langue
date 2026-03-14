@@ -222,14 +222,15 @@ jobs:
         if: matrix.platform == 'macos-latest'
         run: |
           chmod +x scripts/create-macos-pkg.sh
-          ./scripts/create-macos-pkg.sh
+          chmod +x scripts/postinstall
+          ./scripts/create-macos-pkg.sh "${{ needs.create-release.outputs.version }}" "${{ matrix.arch }}"
 
       - name: Upload macOS assets to release
         if: matrix.platform == 'macos-latest'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
-          files: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/PisumLangue.pkg
+          files: dist/PisumLangue_${{ needs.create-release.outputs.version }}_${{ matrix.arch }}.pkg
 
       - name: Upload Windows assets to release
         if: matrix.platform == 'windows-latest'
