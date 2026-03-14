@@ -84,13 +84,16 @@ jobs:
           # Update tauri.conf.json
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" src-tauri/tauri.conf.json
 
+          # Update Chocolatey nuspec version
+          sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" packages/chocolatey/pisum-langue.nuspec
+
           # Update Cargo.lock
           cd src-tauri && cargo generate-lockfile && cd ..
 
       - name: Commit and tag
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
-          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
+          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json packages/chocolatey/pisum-langue.nuspec
           git commit -m "chore: bump version to $VERSION"
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin main
@@ -132,8 +135,8 @@ jobs:
 
             **macOS (Homebrew) - Recommended:**
             ```bash
-            brew tap mschnecke/langue
-            brew install --cask langue
+            brew tap mschnecke/pisum-langue
+            brew install --cask pisum-langue
             ```
 
             **macOS (Direct Download):**
@@ -141,8 +144,7 @@ jobs:
 
             **Windows (Chocolatey):**
             ```powershell
-            choco source add -n="pisum-langue" -s="https://www.myget.org/F/mschnecke/api/v3/index.json"
-            choco install pisum-langue
+            choco install pisum-langue --source https://www.myget.org/F/mschnecke/api/v3/index.json
             ```
 
             **Windows (Direct Download):**
@@ -280,7 +282,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          repository: mschnecke/homebrew-lange
+          repository: mschnecke/homebrew-pisum-langue
           event-type: update-cask
           client-payload: '{"version": "${{ needs.create-release.outputs.version }}"}'
 
