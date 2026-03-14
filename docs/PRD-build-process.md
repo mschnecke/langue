@@ -24,7 +24,7 @@ Pisum Langue currently has no CI/CD pipeline. Developers must manually build and
 
 1. The CI workflow must trigger on pushes to `main` and on pull requests targeting `main`.
 2. The CI workflow must run on both `windows-latest` and `macos-latest` runners.
-3. The CI workflow must install Node.js (version 20) and Rust (stable) with appropriate caching for both npm packages and Rust dependencies.
+3. The CI workflow must install Node.js (version 24) and Rust (stable) with appropriate caching for both npm packages and Rust dependencies.
 4. The CI workflow must install platform-specific dependencies (Opus via Homebrew on macOS).
 5. The CI workflow must install frontend dependencies using `npm ci`.
 6. The CI workflow must build the frontend (`npm run build`).
@@ -61,7 +61,7 @@ Pisum Langue currently has no CI/CD pipeline. Developers must manually build and
 ## 6. Technical Considerations
 
 - **Tauri Action**: Use `tauri-apps/tauri-action@v0` for building, consistent with the reference project (`github-global-hotkey`)
-- **Node.js version**: Pinned to 20 via `.nvmrc` at the repository root; CI workflows must use this version
+- **Node.js version**: Pinned to 24 via `.nvmrc` at the repository root; CI workflows must use this version
 - **Platform targets**: macOS uses `--target aarch64-apple-darwin --bundles app`, followed by a post-build script to produce a `.pkg` installer (consistent with reference project); Windows uses `--bundles msi`
 - **macOS dependency**: The Opus library must be installed via `brew install opus` before building on macOS runners (hard requirement for `audiopus` crate)
 - **Version sync**: When bumping versions via workflow_dispatch, three files must be updated in lockstep: `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`

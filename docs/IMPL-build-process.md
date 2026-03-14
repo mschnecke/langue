@@ -26,7 +26,7 @@ The project currently has zero CI/CD infrastructure. The reference project (`git
 ### CI Workflow Flow
 
 ```
-push to main / PR → checkout → setup Node 20 + Rust stable (cached)
+push to main / PR → checkout → setup Node 24 + Rust stable (cached)
   → install platform deps (Opus on macOS)
   → npm ci → npm run build
   → tauri build (matrix: macOS aarch64 + Windows)
@@ -218,7 +218,7 @@ The `.app` bundle produced by `tauri-apps/tauri-action` needs a post-build scrip
 
   - **Job 3: `build-tauri`** (matrix: macOS + Windows):
     - Needs: `create-release`
-    - Same setup as CI workflow (Node 20, Rust stable, caching, Opus on macOS)
+    - Same setup as CI workflow (Node 24, Rust stable, caching, Opus on macOS)
     - Build with `tauri-apps/tauri-action@v0`
     - macOS: `--target aarch64-apple-darwin --bundles app`, then run `scripts/create-macos-pkg.sh`
     - Windows: `--bundles msi`
@@ -332,7 +332,7 @@ Since this feature is entirely CI/CD configuration (no application code changes)
 |---------|-------------------|---------|-------|
 | 4 #1 | CI triggers on push to `main` and PRs targeting `main` | 1.1 | `on.push.branches` + `on.pull_request.branches` |
 | 4 #2 | CI runs on `windows-latest` and `macos-latest` | 1.1 | Matrix strategy |
-| 4 #3 | Install Node 20 and Rust stable with caching | 1.1 | `setup-node` + `rust-toolchain` + `rust-cache` |
+| 4 #3 | Install Node 24 and Rust stable with caching | 1.1 | `setup-node` + `rust-toolchain` + `rust-cache` |
 | 4 #4 | Install platform-specific deps (Opus on macOS) | 1.1 | Conditional `brew install opus` step |
 | 4 #5 | Install frontend deps via `npm ci` | 1.1 | Explicit `npm ci` step |
 | 4 #6 | Build frontend (`npm run build`) | 1.1 | Explicit `npm run build` step |
