@@ -9,6 +9,7 @@ mod tray;
 
 use std::sync::RwLock;
 
+use ai::gemini::{GeminiProvider, ModelInfo};
 use ai::pool::{ProviderEntry, ProviderPool};
 use config::schema::{AppSettings, Preset, ProviderConfig};
 use hotkey::conflict::HotkeyBinding;
@@ -120,6 +121,20 @@ async fn test_provider_connection(provider: ProviderConfig) -> Result<bool, Stri
     ProviderPool::test_provider(&entry)
         .await
         .map_err(|e| e.to_string())
+}
+
+/// List available models for a provider type.
+#[tauri::command]
+async fn list_provider_models(
+    provider_type: String,
+    api_key: String,
+) -> Result<Vec<ModelInfo>, String> {
+    match provider_type.to_lowercase().as_str() {
+        "gemini" => GeminiProvider::list_models(&api_key)
+            .await
+            .map_err(|e| e.to_string()),
+        _ => Err(format!("Unknown provider type: {}", provider_type)),
+    }
 }
 
 // ── Settings commands ────────────────────────────────────────────
@@ -298,6 +313,7 @@ pub fn run() {
             check_conflict,
             check_system_conflict,
             test_provider_connection,
+            list_provider_models,
             load_settings,
             save_settings,
             get_presets,

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { AppSettings, HotkeyBinding, Preset, ProviderConfig } from './types';
+import type { AppSettings, HotkeyBinding, ModelInfo, Preset, ProviderConfig } from './types';
 
 // Settings
 export async function loadSettings(): Promise<AppSettings> {
@@ -30,6 +30,13 @@ export async function deletePreset(presetId: string): Promise<void> {
 // Providers
 export async function testProviderConnection(provider: ProviderConfig): Promise<boolean> {
   return invoke('test_provider_connection', { provider });
+}
+
+export async function listProviderModels(
+  providerType: string,
+  apiKey: string,
+): Promise<ModelInfo[]> {
+  return invoke('list_provider_models', { providerType, apiKey });
 }
 
 // Hotkeys

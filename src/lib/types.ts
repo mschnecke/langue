@@ -25,6 +25,11 @@ export interface ProviderConfig {
   enabled: boolean;
 }
 
+export interface ModelInfo {
+  id: string;
+  displayName: string;
+}
+
 export interface HotkeyBinding {
   modifiers: string[];
   key: string;

@@ -214,6 +214,72 @@ struct GeminiError {
     message: String,
 }
 
+// --- Model listing ---
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelInfo {
+    pub id: String,
+    pub display_name: String,
+}
+
+#[derive(Deserialize)]
+struct ModelsResponse {
+    models: Option<Vec<ModelEntry>>,
+}
+
+#[derive(Deserialize)]
+struct ModelEntry {
+    name: String,
+    #[serde(rename = "displayName")]
+    display_name: Option<String>,
+    #[serde(rename = "supportedGenerationMethods", default)]
+    supported_generation_methods: Vec<String>,
+}
+
+impl GeminiProvider {
+    /// List available Gemini models that support content generation
+    pub async fn list_models(api_key: &str) -> Result<Vec<ModelInfo>, AppError> {
+        let url = format!("{}/models?key={}", GEMINI_API_BASE, api_key);
+        let client = Client::new();
+        let response = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::Transcription(format!("Failed to list models: {}", e)))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(AppError::Transcription(format!(
+                "Failed to list models ({}): {}",
+                status,
+                &body[..body.len().min(200)]
+            )));
+        }
+
+        let body: ModelsResponse = response
+            .json()
+            .await
+            .map_err(|e| AppError::Transcription(format!("Failed to parse models: {}", e)))?;
+
+        let models = body
+            .models
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|m| m.supported_generation_methods.contains(&"generateContent".to_string()))
+            .map(|m| {
+                let id = m.name.strip_prefix("models/").unwrap_or(&m.name).to_string();
+                ModelInfo {
+                    display_name: m.display_name.unwrap_or_else(|| id.clone()),
+                    id,
+                }
+            })
+            .collect();
+
+        Ok(models)
+    }
+}
+
 // --- Trait implementation ---
 
 impl TranscriptionProvider for GeminiProvider {

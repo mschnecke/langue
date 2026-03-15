@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { AppSettings, ProviderConfig as ProviderConfigType } from '$lib/types';
-  import { testProviderConnection } from '$lib/commands';
+  import type { AppSettings, ModelInfo, ProviderConfig as ProviderConfigType } from '$lib/types';
+  import { testProviderConnection, listProviderModels } from '$lib/commands';
 
   let { settings, onUpdate }: { settings: AppSettings; onUpdate: (s: AppSettings) => void } =
     $props();
@@ -8,6 +8,8 @@
   let testingId = $state<string | null>(null);
   let testResult = $state<{ id: string; success: boolean; message: string } | null>(null);
   let showApiKey = $state<Record<string, boolean>>({});
+  let modelsCache = $state<Record<string, ModelInfo[]>>({});
+  let loadingModels = $state<Record<string, boolean>>({});
 
   function addProvider() {
     const id = crypto.randomUUID();
@@ -51,6 +53,28 @@
 
   function toggleShowKey(id: string) {
     showApiKey = { ...showApiKey, [id]: !showApiKey[id] };
+  }
+
+  async function fetchModels(provider: ProviderConfigType) {
+    if (!provider.apiKey) return;
+
+    const cacheKey = `${provider.providerType}:${provider.apiKey}`;
+    if (modelsCache[cacheKey]) return;
+
+    loadingModels = { ...loadingModels, [provider.id]: true };
+    try {
+      const models = await listProviderModels(provider.providerType, provider.apiKey);
+      modelsCache = { ...modelsCache, [cacheKey]: models };
+    } catch (e) {
+      console.error('Failed to fetch models:', e);
+    } finally {
+      loadingModels = { ...loadingModels, [provider.id]: false };
+    }
+  }
+
+  function getModels(provider: ProviderConfigType): ModelInfo[] {
+    const cacheKey = `${provider.providerType}:${provider.apiKey}`;
+    return modelsCache[cacheKey] ?? [];
   }
 </script>
 
@@ -127,20 +151,43 @@
         </div>
       </div>
 
-      <!-- Model (optional) -->
+      <!-- Model -->
       <div>
-        <label for="model-{provider.id}" class="block text-xs font-medium text-gray-600 mb-1">Model (optional)</label>
-        <input
-          id="model-{provider.id}"
-          type="text"
-          value={provider.model ?? ''}
-          oninput={(e) =>
-            updateProvider(provider.id, {
-              model: e.currentTarget.value || null,
-            })}
-          placeholder="gemini-2.5-flash-lite (default)"
-          class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
-        />
+        <label for="model-{provider.id}" class="block text-xs font-medium text-gray-600 mb-1">Model</label>
+        <div class="flex gap-2">
+          <select
+            id="model-{provider.id}"
+            value={provider.model ?? ''}
+            onchange={(e) =>
+              updateProvider(provider.id, {
+                model: e.currentTarget.value || null,
+              })}
+            onfocus={() => fetchModels(provider)}
+            disabled={!provider.apiKey}
+            class="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white disabled:bg-gray-50 disabled:text-gray-400"
+          >
+            <option value="">Default (gemini-2.5-flash-lite)</option>
+            {#if loadingModels[provider.id]}
+              <option disabled>Loading models...</option>
+            {/if}
+            {#each getModels(provider) as model (model.id)}
+              <option value={model.id}>{model.displayName} ({model.id})</option>
+            {/each}
+          </select>
+          <button
+            class="px-2 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            onclick={() => {
+              const cacheKey = `${provider.providerType}:${provider.apiKey}`;
+              const { [cacheKey]: _, ...rest } = modelsCache;
+              modelsCache = rest;
+              fetchModels(provider);
+            }}
+            disabled={!provider.apiKey || loadingModels[provider.id]}
+            title="Refresh models"
+          >
+            {loadingModels[provider.id] ? '...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       <!-- Test Connection -->
