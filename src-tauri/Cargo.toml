@@ -22,7 +22,6 @@ tokio = { version = "1", features = ["rt"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing-appender = "0.2"
 dirs = "5"
 global-hotkey = "0.6"
 cpal = "0.15"
