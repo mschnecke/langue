@@ -38,7 +38,7 @@
   <label class="flex items-center justify-between py-2">
     <div>
       <p class="text-sm font-medium text-gray-900">Start with system</p>
-      <p class="text-xs text-gray-500">Launch Pisum Langue when you log in</p>
+      <p class="text-xs text-gray-500">Launch Pisum Transcript when you log in</p>
     </div>
     <button
       class="relative w-10 h-5 rounded-full transition-colors {settings.startWithSystem

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>pisum-transcript</id>
+    <version>0.1.18</version>
+    <title>Pisum Transcript</title>
+    <authors>Pisum Transcript Team</authors>
+    <owners>mschnecke</owners>
+    <projectUrl>https://github.com/mschnecke/pisum-transcript</projectUrl>
+    <licenseUrl>https://github.com/mschnecke/pisum-transcript/blob/main/LICENSE</licenseUrl>
+    <iconUrl>https://raw.githubusercontent.com/mschnecke/pisum-transcript/main/src-tauri/icons/icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+Pisum Transcript is an AI-driven transcription utility. Hold a hotkey to record speech, release to transcribe and paste at the cursor position.
+
+Features:
+- Global hotkey-driven speech-to-text transcription
+- AI-powered transcription with multiple provider support
+- System tray integration with recording state indicators
+- Configurable audio settings and hotkey bindings
+- Cross-platform support (macOS and Windows)
+    </description>
+    <summary>AI-driven transcription utility with global hotkey support</summary>
+    <releaseNotes>https://github.com/mschnecke/pisum-transcript/releases</releaseNotes>
+    <copyright>Copyright 2025 Pisum Transcript Team</copyright>
+    <tags>transcription dictation speech-to-text ai hotkey</tags>
+    <packageSourceUrl>https://github.com/mschnecke/pisum-transcript/tree/main/packages/chocolatey</packageSourceUrl>
+    <docsUrl>https://github.com/mschnecke/pisum-transcript#readme</docsUrl>
+    <bugTrackerUrl>https://github.com/mschnecke/pisum-transcript/issues</bugTrackerUrl>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

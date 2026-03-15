@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    pisum_langue_lib::run();
+    pisum_transcript_lib::run();
 }

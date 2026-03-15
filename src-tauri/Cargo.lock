@@ -3388,7 +3388,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pisum-langue"
+name = "pisum-transcript"
 version = "0.1.18"
 dependencies = [
  "arboard",

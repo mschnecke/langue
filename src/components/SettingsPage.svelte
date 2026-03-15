@@ -27,7 +27,7 @@
 <div class="flex flex-col h-screen">
   <!-- Header -->
   <div class="px-6 pt-5 pb-0">
-    <h1 class="text-lg font-semibold text-gray-900">Pisum Langue Settings</h1>
+    <h1 class="text-lg font-semibold text-gray-900">Pisum Transcript Settings</h1>
   </div>
 
   <!-- Tabs -->

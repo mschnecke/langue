@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Pisum Langue** is an AI-driven transcription utility. The user holds a global hotkey to record speech, releases it to stop, and the transcribed text is pasted at the cursor position. The project uses **Tauri 2 (Rust backend) + Svelte 5 (TypeScript frontend)**, Vite 6, and Tailwind CSS.
+**Pisum Transcript** is an AI-driven transcription utility. The user holds a global hotkey to record speech, releases it to stop, and the transcribed text is pasted at the cursor position. The project uses **Tauri 2 (Rust backend) + Svelte 5 (TypeScript frontend)**, Vite 6, and Tailwind CSS.
 
 ## Repository State
 

@@ -1,4 +1,4 @@
-# Pisum Langue
+# Pisum Transcript
 
 Hotkey-driven, system-tray-style dictation tool. Hold a global hotkey to record speech, release to transcribe via AI, and the result is pasted at the cursor position.
 
@@ -20,7 +20,7 @@ Hotkey-driven, system-tray-style dictation tool. Hold a global hotkey to record 
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
+- [Node.js](https://nodejs.org/) 24+ (see `.nvmrc`)
 - [Rust](https://rustup.rs/) 1.70+
 - Platform-specific:
   - **Windows**: Visual Studio Build Tools

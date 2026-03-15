@@ -7,9 +7,9 @@ use crate::error::AppError;
 use super::presets::get_builtin_presets;
 use super::schema::AppSettings;
 
-const SETTINGS_FILE: &str = ".pisum-langue.json";
+const SETTINGS_FILE: &str = ".pisum-transcript.json";
 
-/// Get the settings file path (~/.pisum-langue.json)
+/// Get the settings file path (~/.pisum-transcript.json)
 fn settings_path() -> Result<PathBuf, AppError> {
     let home = dirs::home_dir()
         .ok_or_else(|| AppError::Config("Could not determine home directory".to_string()))?;

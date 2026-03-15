@@ -6,6 +6,9 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
+      "osx": {
+        "runtimeExecutable": "/usr/local/bin/npm"
+      },
       "windows": {
         "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd"
       },

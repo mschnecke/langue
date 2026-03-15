@@ -1,10 +1,10 @@
 [package]
-name = "pisum-langue"
+name = "pisum-transcript"
 version = "0.1.18"
 edition = "2021"
 
 [lib]
-name = "pisum_langue_lib"
+name = "pisum_transcript_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

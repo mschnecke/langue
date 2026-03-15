@@ -2,7 +2,7 @@
 # scripts/postinstall
 # Runs after the .pkg installation completes
 
-APP_PATH="/Applications/Pisum Langue.app"
+APP_PATH="/Applications/Pisum Transcript.app"
 
 # Remove quarantine attribute (allows app to run without Gatekeeper warning)
 if [ -d "$APP_PATH" ]; then
@@ -10,9 +10,9 @@ if [ -d "$APP_PATH" ]; then
 fi
 
 # Notify user about Accessibility permissions
-osascript -e 'display notification "Please grant Accessibility permissions in System Settings > Privacy & Security > Accessibility" with title "Pisum Langue Installed" subtitle "One more step needed"' 2>/dev/null || true
+osascript -e 'display notification "Please grant Accessibility permissions in System Settings > Privacy & Security > Accessibility" with title "Pisum Transcript Installed" subtitle "One more step needed"' 2>/dev/null || true
 
-# Launch Pisum Langue after installation
+# Launch Pisum Transcript after installation
 if [ -d "$APP_PATH" ]; then
     CONSOLE_USER=$(stat -f "%Su" /dev/console)
     if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ]; then
