@@ -85,7 +85,7 @@ jobs:
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" src-tauri/tauri.conf.json
 
           # Update Chocolatey nuspec version
-          sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" packages/chocolatey/pisum-langue.nuspec
+          sed -i "s/<version>.*<\/version>/<version>$NEW_VERSION<\/version>/" packages/chocolatey/pisum-transcript.nuspec
 
           # Update Cargo.lock
           cd src-tauri && cargo generate-lockfile && cd ..
@@ -93,7 +93,7 @@ jobs:
       - name: Commit and tag
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
-          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json packages/chocolatey/pisum-langue.nuspec
+          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json packages/chocolatey/pisum-transcript.nuspec
           git commit -m "chore: bump version to $VERSION"
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin main
@@ -125,9 +125,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          name: Pisum Langue v${{ steps.get_version.outputs.version }}
+          name: Pisum Transcript v${{ steps.get_version.outputs.version }}
           body: |
-            ## Pisum Langue v${{ steps.get_version.outputs.version }}
+            ## Pisum Transcript v${{ steps.get_version.outputs.version }}
 
             A cross-platform, Hotkey-driven, system-tray-style dictation tool.
 
@@ -135,34 +135,34 @@ jobs:
 
             **macOS (Homebrew) - Recommended:**
             ```bash
-            brew tap mschnecke/pisum-langue
-            brew install --cask pisum-langue
+            brew tap mschnecke/pisum-transcript
+            brew install --cask pisum-transcript
             ```
 
             **macOS (Direct Download):**
-            Download the `.pkg` installer: `Pisum.Langue_${{ steps.get_version.outputs.version }}_aarch64.pkg` (Apple Silicon)
+            Download the `.pkg` installer: `Pisum.Transcript_${{ steps.get_version.outputs.version }}_aarch64.pkg` (Apple Silicon)
 
             **Windows (Chocolatey):**
             ```powershell
-            choco install pisum-langue --source https://www.myget.org/F/mschnecke/api/v3/index.json
+            choco install pisum-transcript --source https://www.myget.org/F/mschnecke/api/v3/index.json
             ```
 
             **Windows (Direct Download):**
-            Download `Pisum.Langue_${{ steps.get_version.outputs.version }}_x64_en-US.msi` from assets below.
+            Download `Pisum.Transcript_${{ steps.get_version.outputs.version }}_x64_en-US.msi` from assets below.
 
             ### Quick Start
 
             - **Default hotkey:** Configure your shortcuts in the settings
-            - **Settings stored in:** `~/.pisum-langue.json`
+            - **Settings stored in:** `~/.pisum-transcript.json`
 
             ### Post-Installation (macOS)
 
             Grant Accessibility permissions:
             1. Open System Settings > Privacy & Security > Accessibility
-            2. Enable Pisum Langue in the list
+            2. Enable Pisum Transcript in the list
 
             ### Changelog
-            See [CHANGELOG.md](https://github.com/mschnecke/langue/blob/main/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/mschnecke/pisum-transcript/blob/main/CHANGELOG.md) for details.
           draft: true
           prerelease: false
           generate_release_notes: false
@@ -235,7 +235,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
-          files: dist/Pisum.Langue_${{ needs.create-release.outputs.version }}_${{ matrix.arch }}.pkg
+          files: dist/Pisum.Transcript_${{ needs.create-release.outputs.version }}_${{ matrix.arch }}.pkg
 
       - name: Rename Windows MSI
         if: matrix.platform == 'windows-latest'
@@ -250,14 +250,14 @@ jobs:
             exit 1
           fi
           echo "Found MSI: $MSI_FILE"
-          mv "$MSI_FILE" "$MSI_DIR/Pisum.Langue_${VERSION}_x64_en-US.msi"
+          mv "$MSI_FILE" "$MSI_DIR/Pisum.Transcript_${VERSION}_x64_en-US.msi"
 
       - name: Upload Windows assets to release
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
-          files: ./src-tauri/target/release/bundle/msi/Pisum.Langue_${{ needs.create-release.outputs.version }}_x64_en-US.msi
+          files: ./src-tauri/target/release/bundle/msi/Pisum.Transcript_${{ needs.create-release.outputs.version }}_x64_en-US.msi
 
   publish-release:
     needs: [create-release, build-tauri]
@@ -282,7 +282,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          repository: mschnecke/homebrew-pisum-langue
+          repository: mschnecke/homebrew-pisum-transcript
           event-type: update-cask
           client-payload: '{"version": "${{ needs.create-release.outputs.version }}"}'
 
@@ -295,12 +295,12 @@ jobs:
       - name: Download Windows installer
         run: |
           $version = "${{ needs.create-release.outputs.version }}"
-          Invoke-WebRequest -Uri "https://github.com/mschnecke/langue/releases/download/v$version/Pisum.Langue_${version}_x64_en-US.msi" -OutFile "Pisum.Langue-Setup.msi"
+          Invoke-WebRequest -Uri "https://github.com/mschnecke/pisum-transcript/releases/download/v$version/Pisum.Transcript_${version}_x64_en-US.msi" -OutFile "Pisum.Transcript-Setup.msi"
 
       - name: Generate checksum
         id: checksum
         run: |
-          $hash = (Get-FileHash -Path "Pisum.Langue-Setup.msi" -Algorithm SHA256).Hash
+          $hash = (Get-FileHash -Path "Pisum.Transcript-Setup.msi" -Algorithm SHA256).Hash
           echo "sha256=$hash" >> $env:GITHUB_OUTPUT
 
       - name: Update Chocolatey package
@@ -310,14 +310,14 @@ jobs:
 
           # Update chocolateyInstall.ps1
           $installScript = Get-Content packages/chocolatey/tools/chocolateyInstall.ps1 -Raw
-          $installScript = $installScript -replace 'url64bit\s*=\s*''.*''', "url64bit = 'https://github.com/mschnecke/langue/releases/download/v$version/Pisum.Langue_${version}_x64_en-US.msi'"
+          $installScript = $installScript -replace 'url64bit\s*=\s*''.*''', "url64bit = 'https://github.com/mschnecke/pisum-transcript/releases/download/v$version/Pisum.Transcript_${version}_x64_en-US.msi'"
           $installScript = $installScript -replace 'checksum64\s*=\s*''.*''', "checksum64 = '$sha256'"
           Set-Content -Path packages/chocolatey/tools/chocolateyInstall.ps1 -Value $installScript
 
           # Update nuspec version
-          $nuspec = Get-Content packages/chocolatey/pisum-langue.nuspec -Raw
+          $nuspec = Get-Content packages/chocolatey/pisum-transcript.nuspec -Raw
           $nuspec = $nuspec -replace '<version>.*</version>', "<version>$version</version>"
-          Set-Content -Path packages/chocolatey/pisum-langue.nuspec -Value $nuspec
+          Set-Content -Path packages/chocolatey/pisum-transcript.nuspec -Value $nuspec
 
       - name: Pack Chocolatey package
         run: |
@@ -334,6 +334,6 @@ jobs:
           MYGET_API_KEY: ${{ secrets.MYGET_API_KEY }}
         run: |
           $version = "${{ needs.create-release.outputs.version }}"
-          dotnet nuget push "packages/chocolatey/pisum-langue.$version.nupkg" `
+          dotnet nuget push "packages/chocolatey/pisum-transcript.$version.nupkg" `
             --source "https://www.myget.org/F/mschnecke/api/v3/index.json" `
             --api-key $env:MYGET_API_KEY

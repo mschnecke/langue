@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2-schema/main/tauri.conf.json",
-  "productName": "Pisum Langue",
+  "productName": "Pisum Transcript",
   "version": "0.1.18",
-  "identifier": "com.pisum.langue",
+  "identifier": "net.pisum.transcript",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "Pisum Langue",
+        "title": "Pisum Transcript",
         "width": 700,
         "height": 530,
         "minWidth": 530,

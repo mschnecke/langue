@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
-$packageName = 'pisum-langue'
-$softwareName = 'Pisum Langue*'
+$packageName = 'pisum-transcript'
+$softwareName = 'Pisum Transcript*'
 $installerType = 'msi'
 
 [array]$key = Get-UninstallRegistryKey -SoftwareName $softwareName

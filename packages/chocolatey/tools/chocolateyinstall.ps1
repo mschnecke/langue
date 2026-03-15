@@ -1,13 +1,13 @@
 $ErrorActionPreference = 'Stop'
 
-$packageName = 'pisum-langue'
+$packageName = 'pisum-transcript'
 $toolsDir = "$(Split-Path -Parent $MyInvocation.MyCommand.Definition)"
 
 $packageArgs = @{
   packageName    = $packageName
   fileType       = 'msi'
-  url64bit       = 'https://github.com/mschnecke/langue/releases/download/v0.1.7/Pisum.Langue_0.1.7_x64_en-US.msi'
-  softwareName   = 'Pisum Langue*'
+  url64bit       = 'https://github.com/mschnecke/pisum-transcript/releases/download/v0.1.7/Pisum.Transcript_0.1.7_x64_en-US.msi'
+  softwareName   = 'Pisum Transcript*'
   checksum64     = 'REPLACE_WITH_ACTUAL_CHECKSUM'
   checksumType64 = 'sha256'
   silentArgs     = '/qn /norestart'

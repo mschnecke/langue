@@ -30,7 +30,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     let tray_builder = TrayIconBuilder::with_id("main")
         .icon(tray_icon)
-        .tooltip("Pisum Langue")
+        .tooltip("Pisum Transcript")
         .menu(&menu);
 
     // macOS: mark as template image so the system auto-inverts for dark/light mode
@@ -116,7 +116,7 @@ pub fn set_tray_tooltip(preset_name: &str) {
     let handle = APP_HANDLE.read().unwrap();
     if let Some(app) = handle.as_ref() {
         if let Some(tray) = app.tray_by_id("main") {
-            let tooltip = format!("Pisum Langue — {}", preset_name);
+            let tooltip = format!("Pisum Transcript — {}", preset_name);
             let _ = tray.set_tooltip(Some(&tooltip));
         }
     }

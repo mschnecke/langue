@@ -1,4 +1,4 @@
-# Pisum Langue
+# Pisum Transcript
 
 Hotkey-driven, system-tray-style dictation tool. Hold a global hotkey to record speech, release to transcribe via AI, and the result is pasted at the cursor position.
 

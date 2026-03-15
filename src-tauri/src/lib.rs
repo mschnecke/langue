@@ -284,7 +284,7 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     logging::init();
-    tracing::info!("Starting Pisum Langue v{}", env!("CARGO_PKG_VERSION"));
+    tracing::info!("Starting Pisum Transcript v{}", env!("CARGO_PKG_VERSION"));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
@@ -375,7 +375,7 @@ pub fn run() {
                 }
 
                 tray::send_notification(
-                    "Welcome to Pisum Langue!",
+                    "Welcome to Pisum Transcript!",
                     "Please configure an AI provider to get started.",
                 );
                 // Open settings window
