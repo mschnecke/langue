@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>pisum-transcript</id>
-    <version>0.1.18</version>
+    <version>0.1.19</version>
     <title>Pisum Transcript</title>
     <authors>Pisum Transcript Team</authors>
     <owners>mschnecke</owners>
