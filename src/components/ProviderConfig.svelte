@@ -1,9 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { AppSettings, ModelInfo, ProviderConfig as ProviderConfigType } from '$lib/types';
   import { testProviderConnection, listProviderModels } from '$lib/commands';
 
   let { settings, onUpdate }: { settings: AppSettings; onUpdate: (s: AppSettings) => void } =
     $props();
+
+  onMount(() => {
+    for (const provider of settings.providers) {
+      if (provider.apiKey) {
+        fetchModels(provider);
+      }
+    }
+  });
 
   let testingId = $state<string | null>(null);
   let testResult = $state<{ id: string; success: boolean; message: string } | null>(null);
