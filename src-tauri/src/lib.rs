@@ -10,6 +10,7 @@ mod tray;
 use std::sync::RwLock;
 
 use ai::gemini::{GeminiProvider, ModelInfo};
+use ai::openai::OpenAiProvider;
 use ai::pool::{ProviderEntry, ProviderPool};
 use config::schema::{AppSettings, Preset, ProviderConfig};
 use hotkey::conflict::HotkeyBinding;
@@ -111,12 +112,13 @@ async fn set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 async fn test_provider_connection(provider: ProviderConfig) -> Result<bool, String> {
     let provider_type_str = match provider.provider_type {
-        config::schema::ProviderType::Gemini => "gemini".to_string(),
+        config::schema::ProviderType::Gemini => "gemini",
+        config::schema::ProviderType::OpenAi => "openai",
     };
     let entry = ProviderEntry {
         api_key: provider.api_key,
         model: provider.model,
-        provider_type: provider_type_str,
+        provider_type: provider_type_str.to_string(),
     };
     ProviderPool::test_provider(&entry)
         .await
@@ -131,6 +133,9 @@ async fn list_provider_models(
 ) -> Result<Vec<ModelInfo>, String> {
     match provider_type.to_lowercase().as_str() {
         "gemini" => GeminiProvider::list_models(&api_key)
+            .await
+            .map_err(|e| e.to_string()),
+        "openai" => OpenAiProvider::list_models(&api_key)
             .await
             .map_err(|e| e.to_string()),
         _ => Err(format!("Unknown provider type: {}", provider_type)),
@@ -258,8 +263,10 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
         .filter(|p| p.enabled)
         .map(|p| {
             let provider_type_str = match p.provider_type {
-                config::schema::ProviderType::Gemini => "gemini".to_string(),
-            };
+                config::schema::ProviderType::Gemini => "gemini",
+                config::schema::ProviderType::OpenAi => "openai",
+            }
+            .to_string();
             ProviderEntry {
                 api_key: p.api_key.clone(),
                 model: p.model.clone(),
@@ -366,8 +373,10 @@ pub fn run() {
                 .filter(|p| p.enabled)
                 .map(|p| {
                     let provider_type_str = match p.provider_type {
-                        config::schema::ProviderType::Gemini => "gemini".to_string(),
-                    };
+                        config::schema::ProviderType::Gemini => "gemini",
+                        config::schema::ProviderType::OpenAi => "openai",
+                    }
+                    .to_string();
                     ProviderEntry {
                         api_key: p.api_key.clone(),
                         model: p.model.clone(),

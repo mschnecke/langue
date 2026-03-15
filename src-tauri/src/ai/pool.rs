@@ -3,6 +3,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use super::gemini::GeminiProvider;
+use super::openai::OpenAiProvider;
 use super::provider::{TranscriptionProvider, TranscriptionResult};
 use crate::error::AppError;
 
@@ -40,6 +41,12 @@ impl ProviderPool {
                         GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
                     self.providers.push(Box::new(provider));
                     tracing::info!("Added Gemini provider to pool");
+                }
+                "openai" | "OpenAi" => {
+                    let provider =
+                        OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
+                    self.providers.push(Box::new(provider));
+                    tracing::info!("Added OpenAI provider to pool");
                 }
                 other => {
                     tracing::warn!("Unknown provider type: {}, skipping", other);
@@ -98,6 +105,11 @@ impl ProviderPool {
             "gemini" | "Gemini" => {
                 let provider =
                     GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
+                provider.test_connection().await
+            }
+            "openai" | "OpenAi" => {
+                let provider =
+                    OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
                 provider.test_connection().await
             }
             other => Err(AppError::Transcription(format!(

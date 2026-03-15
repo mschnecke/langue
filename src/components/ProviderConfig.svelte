@@ -111,7 +111,21 @@
     <div class="border border-gray-200 rounded-lg p-4 space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-gray-900 capitalize">{provider.providerType}</span>
+          <select
+            value={provider.providerType}
+            onchange={(e) => {
+              const newType = e.currentTarget.value as 'gemini' | 'openai';
+              // Clear model and cached models when switching provider type
+              const oldCacheKey = `${provider.providerType}:${provider.apiKey}`;
+              const { [oldCacheKey]: _, ...rest } = modelsCache;
+              modelsCache = rest;
+              updateProvider(provider.id, { providerType: newType, model: null });
+            }}
+            class="text-sm font-medium text-gray-900 border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            <option value="gemini">Gemini</option>
+            <option value="openai">OpenAI</option>
+          </select>
           {#if !provider.enabled}
             <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">Disabled</span>
           {/if}
@@ -175,7 +189,7 @@
             disabled={!provider.apiKey}
             class="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white disabled:bg-gray-50 disabled:text-gray-400"
           >
-            <option value="">Default (gemini-2.5-flash-lite)</option>
+            <option value="">{provider.providerType === 'openai' ? 'Default (gpt-4o-mini-audio-preview)' : 'Default (gemini-2.5-flash-lite)'}</option>
             {#if loadingModels[provider.id]}
               <option disabled>Loading models...</option>
             {/if}
