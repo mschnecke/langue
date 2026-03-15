@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Recording tray icon (red accent to indicate active recording) -->
+  <!-- Recording state tray icon -->
   <path d="M 10 10 C 10 6, 14 2, 18 2 L 46 2 C 50 2, 54 6, 54 10
            L 54 38 C 54 42, 50 46, 46 46 L 26 46 L 16 56 L 16 46
            L 18 46 C 14 46, 10 42, 10 38 Z"
-        fill="#dc2626" opacity="0.9"/>
-  <g stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" fill="none">
-    <path d="M 26 16 Q 21 27, 26 38" opacity="0.55"/>
-    <path d="M 33 12 Q 26 27, 33 42"/>
-    <path d="M 40 16 Q 35 27, 40 38" opacity="0.55"/>
+        fill="#1a1a1a" opacity="0.85"/>
+  <g fill="#ffffff">
+    <rect x="17" y="12" width="28" height="4" rx="2"/>
+    <rect x="17" y="20" width="23" height="4" rx="2"/>
+    <rect x="17" y="28" width="30" height="4" rx="2"/>
+    <rect x="17" y="36" width="19" height="4" rx="2"/>
   </g>
   <!-- Recording indicator dot -->
-  <circle cx="50" cy="8" r="7" fill="#dc2626"/>
-  <circle cx="50" cy="8" r="4" fill="#ffffff"/>
+  <circle cx="52" cy="8" r="7" fill="#ff3b30"/>
 </svg>

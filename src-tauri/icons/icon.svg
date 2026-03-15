@@ -1,47 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6366f1"/>
-      <stop offset="100%" style="stop-color:#8b5cf6"/>
-    </linearGradient>
-    <linearGradient id="bubble" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff"/>
-      <stop offset="100%" style="stop-color:#f0f0ff"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.25"/>
-    </filter>
-  </defs>
+  <!-- Black rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="#1a1a1a"/>
 
-  <!-- Rounded square background -->
-  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bg)"/>
+  <!-- White speech bubble -->
+  <path d="M 108 120
+           C 108 96, 128 76, 152 76
+           L 360 76
+           C 384 76, 404 96, 404 120
+           L 404 290
+           C 404 314, 384 334, 360 334
+           L 210 334
+           L 155 392
+           L 155 334
+           L 152 334
+           C 128 334, 108 314, 108 290 Z"
+        fill="#ffffff"/>
 
-  <!-- Speech bubble -->
-  <g filter="url(#shadow)">
-    <path d="M 120 130
-             C 120 106, 140 86, 164 86
-             L 348 86
-             C 372 86, 392 106, 392 130
-             L 392 280
-             C 392 304, 372 324, 348 324
-             L 224 324
-             L 170 382
-             L 170 324
-             L 164 324
-             C 140 324, 120 304, 120 280 Z"
-          fill="url(#bubble)" opacity="0.95"/>
+  <!-- Text lines inside bubble (transcript) -->
+  <g fill="#1a1a1a">
+    <rect x="152" y="126" width="200" height="14" rx="7"/>
+    <rect x="152" y="162" width="170" height="14" rx="7"/>
+    <rect x="152" y="198" width="210" height="14" rx="7"/>
+    <rect x="152" y="234" width="145" height="14" rx="7"/>
+    <rect x="152" y="270" width="185" height="14" rx="7"/>
   </g>
 
-  <!-- Sound wave arcs inside bubble -->
-  <g stroke="#6366f1" stroke-width="16" stroke-linecap="round" fill="none">
-    <path d="M 200 162 Q 176 205, 200 248" opacity="0.5"/>
-    <path d="M 240 140 Q 208 205, 240 270"/>
-    <path d="M 280 162 Q 256 205, 280 248" opacity="0.5"/>
-    <path d="M 320 180 Q 304 205, 320 230" opacity="0.3"/>
+  <!-- Small sound wave accent (bottom right, subtle) -->
+  <g stroke="#ffffff" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.6">
+    <path d="M 330 380 Q 318 405, 330 430"/>
+    <path d="M 355 370 Q 338 405, 355 440"/>
+    <path d="M 380 380 Q 368 405, 380 430"/>
   </g>
-
-  <!-- Subtle decorative dots (language/translation feel) -->
-  <circle cx="356" cy="396" r="18" fill="#c4b5fd" opacity="0.5"/>
-  <circle cx="320" cy="420" r="12" fill="#a78bfa" opacity="0.4"/>
-  <circle cx="392" cy="416" r="9" fill="#ddd6fe" opacity="0.35"/>
 </svg>
