@@ -2,19 +2,54 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "npm: dev",
+      "label": "vite: dev",
       "type": "shell",
       "command": "npm run dev",
       "group": "build",
       "isBackground": true,
       "problemMatcher": {
-        "pattern": { "regexp": "." },
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "VITE",
-          "endsPattern": "ready in"
+          "beginsPattern": ".",
+          "endsPattern": "Local:\\s+http"
         }
       }
+    },
+    {
+      "label": "cargo: build debug",
+      "type": "shell",
+      "command": "cargo build",
+      "options": { "cwd": "${workspaceFolder}/src-tauri" },
+      "group": "build",
+      "problemMatcher": "$rustc"
+    },
+    {
+      "label": "tauri: debug build",
+      "dependsOn": ["vite: dev", "cargo: build debug"],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "kill vite",
+      "type": "shell",
+      "command": "",
+      "windows": {
+        "command": "taskkill /F /FI \"WINDOWTITLE eq npm run dev\" /T 2>nul; exit 0"
+      },
+      "osx": {
+        "command": "pkill -f 'vite' || true"
+      },
+      "linux": {
+        "command": "pkill -f 'vite' || true"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      },
+      "problemMatcher": []
     },
     {
       "label": "cargo: build",

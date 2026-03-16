@@ -1,7 +1,23 @@
 {
   "version": "0.2.0",
   "configurations": [
-{
+    {
+      "name": "Debug Tauri",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript",
+      "windows": {
+        "program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript.exe"
+      },
+      "cwd": "${workspaceFolder}/src-tauri",
+      "env": {
+        "RUST_LOG": "debug",
+        "RUST_BACKTRACE": "1"
+      },
+      "preLaunchTask": "tauri: debug build",
+      "postDebugTask": "kill vite"
+    },
+    {
       "name": "Tauri: Dev (full)",
       "type": "node",
       "request": "launch",
