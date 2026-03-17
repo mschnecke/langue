@@ -63,7 +63,6 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    tracing::info!("System tray initialized");
     Ok(())
 }
 
@@ -83,11 +82,6 @@ fn send_notification_impl(title: &str, message: &str, force: bool) {
     if !force {
         if let Ok(settings) = crate::SETTINGS.read() {
             if !settings.show_tray_notifications {
-                tracing::debug!(
-                    "Notification suppressed (disabled in settings): {} - {}",
-                    title,
-                    message
-                );
                 return;
             }
         }
@@ -102,12 +96,6 @@ fn send_notification_impl(title: &str, message: &str, force: bool) {
             .title(title)
             .body(message)
             .show();
-    } else {
-        tracing::warn!(
-            "Cannot send notification (no app handle): {} - {}",
-            title,
-            message
-        );
     }
 }
 
@@ -148,7 +136,6 @@ pub fn set_recording_state(recording: bool) {
             let _ = tray.set_icon(Some(icon));
         }
     }
-    tracing::debug!("Recording state changed: {}", recording);
 }
 
 /// Try to load a tray icon by filename from known paths.
@@ -195,7 +182,6 @@ fn load_tray_icon(app: &tauri::App) -> Image<'static> {
         return img;
     }
 
-    tracing::warn!("No tray icon found, using embedded icon");
     Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
         .expect("Failed to load embedded tray icon")
 }

@@ -11,6 +11,5 @@ pub fn set_clipboard_text(text: &str) -> Result<(), AppError> {
     clipboard
         .set_text(text.to_string())
         .map_err(|e| AppError::Output(format!("Failed to set clipboard: {}", e)))?;
-    tracing::debug!("Copied {} chars to clipboard", text.len());
     Ok(())
 }

@@ -17,8 +17,8 @@
     try {
       await setActivePreset(presetId);
       await initSettings();
-    } catch (e) {
-      console.error('Failed to set active preset:', e);
+    } catch {
+      // silently ignore
     }
   }
 
@@ -40,8 +40,8 @@
       });
       editingId = null;
       await initSettings();
-    } catch (e) {
-      console.error('Failed to save preset:', e);
+    } catch {
+      // silently ignore
     }
   }
 
@@ -49,8 +49,8 @@
     try {
       await deletePreset(presetId);
       await initSettings();
-    } catch (e) {
-      console.error('Failed to delete preset:', e);
+    } catch {
+      // silently ignore
     }
   }
 
@@ -72,8 +72,8 @@
       });
       adding = false;
       await initSettings();
-    } catch (e) {
-      console.error('Failed to add preset:', e);
+    } catch {
+      // silently ignore
     }
   }
 </script>

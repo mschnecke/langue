@@ -3,7 +3,6 @@ mod audio;
 mod config;
 mod error;
 mod hotkey;
-mod logging;
 mod output;
 mod tray;
 
@@ -102,7 +101,6 @@ async fn set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> {
     } else {
         manager.disable().map_err(|e| e.to_string())?;
     }
-    tracing::info!("Auto-start {}", if enabled { "enabled" } else { "disabled" });
     Ok(())
 }
 
@@ -286,13 +284,7 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
     };
     let app_clone = app.clone();
     let _ = app_clone.run_on_main_thread(move || {
-        match hotkey::manager::register(&binding) {
-            Ok(()) => tracing::info!(
-                "Hotkey re-registered: {}",
-                hotkey::manager::format_hotkey(&binding)
-            ),
-            Err(e) => tracing::warn!("Failed to re-register hotkey: {}", e),
-        }
+        let _ = hotkey::manager::register(&binding);
     });
 
     // Update tray tooltip with active preset name
@@ -305,9 +297,6 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    logging::init();
-    tracing::info!("Starting Pisum Transcript v{}", env!("CARGO_PKG_VERSION"));
-
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
@@ -358,13 +347,7 @@ pub fn run() {
                 modifiers: settings.hotkey.modifiers.clone(),
                 key: settings.hotkey.key.clone(),
             };
-            match hotkey::manager::register(&binding) {
-                Ok(()) => tracing::info!(
-                    "Hotkey registered: {}",
-                    hotkey::manager::format_hotkey(&binding)
-                ),
-                Err(e) => tracing::warn!("Failed to register hotkey: {}", e),
-            }
+            let _ = hotkey::manager::register(&binding);
 
             // Rebuild provider pool from config
             let entries: Vec<ProviderEntry> = settings
@@ -394,19 +377,11 @@ pub fn run() {
                 *cached = settings.clone();
             }
 
-            if settings.providers.is_empty() {
-                tracing::info!(
-                    "No AI providers configured. Configure a provider in Settings."
-                );
-            }
-
             // First launch: enable auto-start, show welcome notification, open settings
             if is_first_launch {
                 if settings.start_with_system {
                     use tauri_plugin_autostart::ManagerExt;
-                    if let Err(e) = app.handle().autolaunch().enable() {
-                        tracing::warn!("Failed to enable auto-start on first launch: {}", e);
-                    }
+                    let _ = app.handle().autolaunch().enable();
                 }
 
                 tray::send_notification(
@@ -425,7 +400,6 @@ pub fn run() {
                 tray::set_tray_tooltip(&preset.name);
             }
 
-            tracing::info!("App setup complete");
             Ok(())
         })
         .run(tauri::generate_context!())

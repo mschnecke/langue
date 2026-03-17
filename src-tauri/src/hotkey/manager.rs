@@ -75,7 +75,6 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
         start_event_loop();
     }
 
-    tracing::info!("Hotkey manager initialized");
     Ok(())
 }
 
@@ -100,11 +99,6 @@ pub fn register(binding: &HotkeyBinding) -> Result<(), AppError> {
     let mut registry = REGISTRY.lock().unwrap();
     *registry = Some((hotkey_id, hotkey));
 
-    tracing::info!(
-        "Registered hotkey: {} + {}",
-        binding.modifiers.join("+"),
-        binding.key
-    );
     Ok(())
 }
 
@@ -123,7 +117,6 @@ pub fn unregister() -> Result<(), AppError> {
             Ok::<(), AppError>(())
         })?;
 
-        tracing::info!("Unregistered hotkey");
     }
 
     Ok(())
@@ -133,7 +126,6 @@ pub fn unregister() -> Result<(), AppError> {
 fn start_event_loop() {
     std::thread::spawn(|| {
         let receiver = GlobalHotKeyEvent::receiver();
-        tracing::debug!("Hotkey event loop started");
         loop {
             if let Ok(event) = receiver.recv() {
                 let registry = REGISTRY.lock().unwrap();
@@ -199,22 +191,18 @@ fn handle_hotkey_press() {
     {
         let recorder = ACTIVE_RECORDER.lock().unwrap();
         if recorder.is_some() {
-            tracing::debug!("Already recording, ignoring press");
             return;
         }
     }
 
     // Guard: transcription in progress
     if IS_TRANSCRIBING.load(Ordering::SeqCst) {
-        tracing::info!("Transcription in progress, ignoring press");
         tray::send_info_notification(
             "Transcription In Progress",
             "Please wait for the current transcription to finish.",
         );
         return;
     }
-
-    tracing::info!("Hotkey pressed — starting recording");
 
     match audio::recorder::AudioRecorderHandle::start() {
         Ok(recorder) => {
@@ -242,7 +230,6 @@ fn handle_hotkey_press() {
                     recorder.is_some()
                 };
                 if has_recorder {
-                    tracing::warn!("Max recording duration reached, auto-stopping");
                     tray::send_info_notification(
                         "Recording Auto-Stopped",
                         &format!(
@@ -255,8 +242,6 @@ fn handle_hotkey_press() {
             });
         }
         Err(e) => {
-            tracing::error!("Failed to start recording: {}", e);
-
             #[cfg(target_os = "macos")]
             if e.to_string().contains("No input device") {
                 tray::send_notification(
@@ -290,20 +275,11 @@ fn stop_and_transcribe() {
     };
 
     if recording_duration < MIN_RECORDING_DURATION {
-        tracing::debug!(
-            "Recording too short ({:?}), skipping transcription",
-            recording_duration
-        );
         // Just stop the recorder, discard samples
         let _ = recorder.stop();
         tray::set_recording_state(false);
         return;
     }
-
-    tracing::info!(
-        "Stopping recording ({:?})",
-        recording_duration
-    );
 
     // Stop, encode, transcribe in a background thread to avoid blocking the event loop
     std::thread::spawn(move || {
@@ -314,11 +290,7 @@ fn stop_and_transcribe() {
 
             match result {
                 Ok(text) => {
-                    tracing::info!("Transcription complete: {} chars", text.len());
-                    tracing::debug!("Transcription text: {}", &text[..text.len().min(200)]);
-
                     if let Err(e) = crate::output::clipboard::set_clipboard_text(&text) {
-                        tracing::error!("Clipboard error: {}", e);
                         tray::send_notification(
                             "Output Error",
                             &format!("Failed to copy to clipboard: {}", e),
@@ -329,8 +301,7 @@ fn stop_and_transcribe() {
                     // Small delay to ensure clipboard is ready before paste
                     std::thread::sleep(std::time::Duration::from_millis(50));
 
-                    if let Err(e) = crate::output::paste::simulate_paste() {
-                        tracing::error!("Paste error: {}", e);
+                    if let Err(_e) = crate::output::paste::simulate_paste() {
                         tray::send_notification(
                             "Paste Failed",
                             "Text was copied to clipboard but paste simulation failed. Use Ctrl+V to paste manually.",
@@ -339,14 +310,12 @@ fn stop_and_transcribe() {
                 }
                 Err(e) => {
                     let (title, body) = categorize_error(&e);
-                    tracing::error!("Pipeline error: {}", e);
                     tray::send_notification(title, &body);
                 }
             }
         }));
 
         if pipeline_result.is_err() {
-            tracing::error!("Unexpected panic in transcription pipeline");
             tray::send_notification(
                 "Unexpected Error",
                 "An unexpected error occurred. Check the logs for details.",
@@ -368,13 +337,6 @@ fn process_and_transcribe(
         return Err(AppError::Audio("No audio recorded".to_string()));
     }
 
-    tracing::info!(
-        "Recorded {} samples at {} Hz, {} ch",
-        samples.len(),
-        sample_rate,
-        channels
-    );
-
     // Encode using the format selected in settings, with fallback
     let preferred_format = {
         crate::SETTINGS
@@ -386,30 +348,20 @@ fn process_and_transcribe(
     let (audio_data, mime_type) = match preferred_format {
         crate::config::schema::AudioFormat::Opus => {
             match audio::encoder::encode_to_opus(&samples, sample_rate, channels) {
-                Ok(data) => {
-                    tracing::info!("Encoded to Opus: {} bytes", data.len());
-                    (data, audio::encoder::opus_mime_type())
-                }
-                Err(e) => {
-                    tracing::warn!("Opus encoding failed, falling back to WAV: {}", e);
+                Ok(data) => (data, audio::encoder::opus_mime_type()),
+                Err(_) => {
                     let wav_data =
                         audio::encoder::encode_to_wav(&samples, sample_rate, channels)?;
-                    tracing::info!("Encoded to WAV (fallback): {} bytes", wav_data.len());
                     (wav_data, audio::encoder::wav_mime_type())
                 }
             }
         }
         crate::config::schema::AudioFormat::Wav => {
             match audio::encoder::encode_to_wav(&samples, sample_rate, channels) {
-                Ok(data) => {
-                    tracing::info!("Encoded to WAV: {} bytes", data.len());
-                    (data, audio::encoder::wav_mime_type())
-                }
-                Err(e) => {
-                    tracing::warn!("WAV encoding failed, falling back to Opus: {}", e);
+                Ok(data) => (data, audio::encoder::wav_mime_type()),
+                Err(_) => {
                     let opus_data =
                         audio::encoder::encode_to_opus(&samples, sample_rate, channels)?;
-                    tracing::info!("Encoded to Opus (fallback): {} bytes", opus_data.len());
                     (opus_data, audio::encoder::opus_mime_type())
                 }
             }
@@ -426,7 +378,6 @@ fn process_and_transcribe(
     let rt = tokio::runtime::Runtime::new()
         .map_err(|e| AppError::Transcription(format!("Failed to create runtime: {}", e)))?;
 
-    tracing::info!("Sending audio to AI provider...");
     let result = rt.block_on(pool.transcribe(&audio_data, mime_type, &system_prompt))?;
 
     Ok(result.text)
@@ -444,13 +395,6 @@ fn parse_hotkey(binding: &HotkeyBinding) -> Result<HotKey, AppError> {
     };
 
     Ok(hotkey)
-}
-
-/// Format a hotkey binding for display
-pub fn format_hotkey(binding: &HotkeyBinding) -> String {
-    let mut parts: Vec<&str> = binding.modifiers.iter().map(|s| s.as_str()).collect();
-    parts.push(&binding.key);
-    parts.join(" + ")
 }
 
 /// Categorize an AppError into a user-friendly notification title and body

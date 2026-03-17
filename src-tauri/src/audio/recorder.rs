@@ -52,14 +52,11 @@ impl AudioRecorderHandle {
             let device = match host.default_input_device() {
                 Some(d) => d,
                 None => {
-                    tracing::error!("No input device found in recording thread");
                     return;
                 }
             };
 
-            let err_fn = |err| tracing::error!("Audio stream error: {}", err);
-            let stream_sample_rate = config_clone.sample_rate().0;
-            let stream_channels = config_clone.channels();
+            let err_fn = |_err| {};
 
             let stream = match config_clone.sample_format() {
                 cpal::SampleFormat::F32 => {
@@ -115,29 +112,20 @@ impl AudioRecorderHandle {
                     )
                 }
                 _ => {
-                    tracing::error!("Unsupported sample format");
                     return;
                 }
             };
 
             let stream = match stream {
                 Ok(s) => s,
-                Err(e) => {
-                    tracing::error!("Failed to build stream: {}", e);
+                Err(_) => {
                     return;
                 }
             };
 
-            if let Err(e) = stream.play() {
-                tracing::error!("Failed to start stream: {}", e);
+            if stream.play().is_err() {
                 return;
             }
-
-            tracing::debug!(
-                "Recording started: {}Hz, {} channels",
-                stream_sample_rate,
-                stream_channels
-            );
 
             // Block until stop command
             let _ = command_rx.recv();

@@ -24,6 +24,5 @@ pub fn simulate_paste() -> Result<(), AppError> {
         .key(modifier, Direction::Release)
         .map_err(|e| AppError::Output(format!("Paste simulation failed: {}", e)))?;
 
-    tracing::debug!("Paste simulated");
     Ok(())
 }

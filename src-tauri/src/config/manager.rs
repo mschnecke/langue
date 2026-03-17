@@ -22,11 +22,9 @@ pub fn init() -> Result<bool, AppError> {
     let path = settings_path()?;
 
     if path.exists() {
-        tracing::info!("Settings file found: {}", path.display());
         return Ok(false);
     }
 
-    tracing::info!("First launch — creating default settings: {}", path.display());
     let defaults = AppSettings::default();
     save_settings(&defaults)?;
     Ok(true)
@@ -45,7 +43,6 @@ pub fn load_settings() -> Result<AppSettings, AppError> {
     let builtins = get_builtin_presets();
     for builtin in &builtins {
         if !settings.presets.iter().any(|p| p.id == builtin.id) {
-            tracing::info!("Adding missing built-in preset: {}", builtin.name);
             settings.presets.push(builtin.clone());
         }
     }
@@ -56,11 +53,6 @@ pub fn load_settings() -> Result<AppSettings, AppError> {
             .first()
             .map(|p| p.id.clone())
             .unwrap_or_else(|| "de-transcribe".to_string());
-        tracing::warn!(
-            "Active preset '{}' not found, falling back to '{}'",
-            settings.active_preset_id,
-            fallback_id
-        );
         settings.active_preset_id = fallback_id;
         // Persist the corrected setting
         save_settings(&settings)?;
@@ -76,6 +68,5 @@ pub fn save_settings(settings: &AppSettings) -> Result<(), AppError> {
         .map_err(|e| AppError::Config(format!("Failed to serialize settings: {}", e)))?;
     std::fs::write(&path, json)
         .map_err(|e| AppError::Config(format!("Failed to write settings: {}", e)))?;
-    tracing::debug!("Settings saved to {}", path.display());
     Ok(())
 }

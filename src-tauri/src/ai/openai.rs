@@ -114,13 +114,6 @@ impl OpenAiProvider {
             let body = response.text().await.unwrap_or_else(|_| "{}".to_string());
 
             if Self::is_retryable_error(status, &body) {
-                tracing::warn!(
-                    "OpenAI retryable error (attempt {}/{}): {} {}",
-                    attempt + 1,
-                    MAX_RETRIES,
-                    status,
-                    &body[..body.len().min(200)]
-                );
                 last_error = Some(AppError::Transcription(format!(
                     "API error {}: {}",
                     status,
@@ -169,7 +162,6 @@ impl OpenAiProvider {
             Ok(resp) if resp.status().is_success() => resp,
             _ => {
                 // Fallback to hardcoded list
-                tracing::warn!("Failed to fetch OpenAI models, using fallback list");
                 return Ok(FALLBACK_MODELS
                     .iter()
                     .map(|(id, name)| ModelInfo {

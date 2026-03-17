@@ -100,13 +100,6 @@ impl GeminiProvider {
             let body = response.text().await.unwrap_or_else(|_| "{}".to_string());
 
             if Self::is_retryable_error(status, &body) {
-                tracing::warn!(
-                    "Gemini retryable error (attempt {}/{}): {} {}",
-                    attempt + 1,
-                    MAX_RETRIES,
-                    status,
-                    &body[..body.len().min(200)]
-                );
                 last_error = Some(AppError::Transcription(format!(
                     "API error {}: {}",
                     status,

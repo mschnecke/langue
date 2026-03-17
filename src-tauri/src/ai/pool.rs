@@ -40,21 +40,16 @@ impl ProviderPool {
                     let provider =
                         GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
                     self.providers.push(Box::new(provider));
-                    tracing::info!("Added Gemini provider to pool");
                 }
                 "openai" | "OpenAi" => {
                     let provider =
                         OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
                     self.providers.push(Box::new(provider));
-                    tracing::info!("Added OpenAI provider to pool");
                 }
-                other => {
-                    tracing::warn!("Unknown provider type: {}, skipping", other);
-                }
+                _ => {}
             }
         }
 
-        tracing::info!("Provider pool rebuilt with {} providers", self.providers.len());
     }
 
     /// Transcribe audio using round-robin selection with fallback.
@@ -82,12 +77,6 @@ impl ProviderPool {
             match provider.transcribe(audio_data, mime_type, system_prompt).await {
                 Ok(result) => return Ok(result),
                 Err(e) => {
-                    tracing::warn!(
-                        "Provider {} ({}) failed: {}",
-                        idx,
-                        provider.provider_name(),
-                        e
-                    );
                     errors.push(format!("{}: {}", provider.provider_name(), e));
                 }
             }

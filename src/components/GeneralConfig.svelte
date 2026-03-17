@@ -10,8 +10,8 @@
     try {
       await setAutostart(newValue);
       onUpdate({ ...settings, startWithSystem: newValue });
-    } catch (e) {
-      console.error('Failed to set autostart:', e);
+    } catch {
+      // silently ignore
     }
   }
 

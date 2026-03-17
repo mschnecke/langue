@@ -74,8 +74,8 @@
     try {
       const models = await listProviderModels(provider.providerType, provider.apiKey);
       modelsCache = { ...modelsCache, [cacheKey]: models };
-    } catch (e) {
-      console.error('Failed to fetch models:', e);
+    } catch {
+      // silently ignore
     } finally {
       loadingModels = { ...loadingModels, [provider.id]: false };
     }
