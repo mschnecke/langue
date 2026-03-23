@@ -27,7 +27,8 @@ audiopus = "0.2"
 rubato = "0.16"
 ogg = "0.9"
 hound = "3.5"
-reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"] }
+futures-util = "0.3"
 base64 = "0.22"
 arboard = "3"
 enigo = "0.3"
@@ -35,9 +36,11 @@ uuid = { version = "1", features = ["v4"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3.2", features = ["NSApplication", "NSRunningApplication"] }
+whisper-rs = "0.14"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = ["Win32_UI_WindowsAndMessaging", "Win32_System_Registry"] }
+whisper-rs = "0.14"
 
 [profile.release]
 panic = "abort"

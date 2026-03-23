@@ -25,6 +25,9 @@ pub enum AppError {
 
     #[error("Output error: {0}")]
     Output(String),
+
+    #[error("Model download error: {0}")]
+    ModelDownload(String),
 }
 
 impl From<AppError> for String {

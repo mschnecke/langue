@@ -8,6 +8,8 @@ export interface AppSettings {
   providers: ProviderConfig[];
   recordingMode: 'holdToRecord' | 'toggle';
   maxRecordingDurationSecs: number;
+  transcriptionMode: TranscriptionMode;
+  whisperConfig: WhisperConfig;
 }
 
 export interface Preset {
@@ -33,4 +35,35 @@ export interface ModelInfo {
 export interface HotkeyBinding {
   modifiers: string[];
   key: string;
+}
+
+export type TranscriptionMode = 'cloud' | 'local';
+export type WhisperLanguage = 'auto' | 'german' | 'english';
+
+export interface WhisperConfig {
+  selectedModel: string;
+  language: WhisperLanguage;
+  translateToEnglish: boolean;
+}
+
+export interface WhisperModelInfo {
+  id: string;
+  name: string;
+  fileName: string;
+  sizeBytes: number;
+  description: string;
+  downloaded: boolean;
+  fileSizeOnDisk: number | null;
+}
+
+export interface WhisperStatus {
+  state: 'ready' | 'loading' | 'noModel' | 'notActive';
+  loadedModel: string | null;
+}
+
+export interface DownloadProgress {
+  modelId: string;
+  bytesDownloaded: number;
+  totalBytes: number;
+  percentage: number;
 }

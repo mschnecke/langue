@@ -31,6 +31,12 @@ pub struct AppSettings {
 
     #[serde(default = "default_max_recording_duration_secs")]
     pub max_recording_duration_secs: u64,
+
+    #[serde(default)]
+    pub transcription_mode: TranscriptionMode,
+
+    #[serde(default)]
+    pub whisper_config: WhisperConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,6 +90,58 @@ pub enum ProviderType {
     OpenAi,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum TranscriptionMode {
+    Cloud,
+    Local,
+}
+
+impl Default for TranscriptionMode {
+    fn default() -> Self {
+        TranscriptionMode::Cloud
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum WhisperLanguage {
+    Auto,
+    German,
+    English,
+}
+
+impl Default for WhisperLanguage {
+    fn default() -> Self {
+        WhisperLanguage::German
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WhisperConfig {
+    #[serde(default = "default_whisper_model")]
+    pub selected_model: String,
+    #[serde(default)]
+    pub language: WhisperLanguage,
+    #[serde(default = "default_true")]
+    pub translate_to_english: bool,
+}
+
+impl Default for WhisperConfig {
+    fn default() -> Self {
+        Self {
+            selected_model: default_whisper_model(),
+            language: WhisperLanguage::default(),
+            translate_to_english: true,
+        }
+    }
+}
+
+fn default_whisper_model() -> String {
+    "large-v3".to_string()
+}
+
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
@@ -96,6 +154,8 @@ impl Default for AppSettings {
             providers: Vec::new(),
             recording_mode: default_recording_mode(),
             max_recording_duration_secs: default_max_recording_duration_secs(),
+            transcription_mode: TranscriptionMode::default(),
+            whisper_config: WhisperConfig::default(),
         }
     }
 }
