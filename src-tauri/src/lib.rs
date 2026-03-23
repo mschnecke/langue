@@ -5,15 +5,17 @@ mod error;
 mod hotkey;
 mod output;
 mod tray;
+mod whisper;
 
 use std::sync::RwLock;
 
 use ai::gemini::{GeminiProvider, ModelInfo};
 use ai::openai::OpenAiProvider;
 use ai::pool::{ProviderEntry, ProviderPool};
-use config::schema::{AppSettings, Preset, ProviderConfig};
+use config::schema::{AppSettings, Preset, ProviderConfig, TranscriptionMode};
 use hotkey::conflict::HotkeyBinding;
 use once_cell::sync::Lazy;
+use serde::Serialize;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -24,6 +26,10 @@ pub static PROVIDER_POOL: Lazy<RwLock<ProviderPool>> =
 /// Global settings cache, used to read the active preset's system prompt
 pub static SETTINGS: Lazy<RwLock<AppSettings>> =
     Lazy::new(|| RwLock::new(AppSettings::default()));
+
+/// Global Whisper engine — loaded lazily when Local mode is active
+pub static WHISPER_ENGINE: Lazy<RwLock<Option<ai::whisper::WhisperEngine>>> =
+    Lazy::new(|| RwLock::new(None));
 
 /// Get the active system prompt from the cached settings
 pub fn active_system_prompt() -> String {
@@ -245,6 +251,161 @@ async fn delete_preset(preset_id: String) -> Result<(), String> {
     Ok(())
 }
 
+// ── Whisper lifecycle ─────────────────────────────────────────────
+
+/// Loads the Whisper model if not already loaded or if the selected model changed.
+pub fn ensure_whisper_loaded(app_handle: &AppHandle) -> Result<(), error::AppError> {
+    let desired_model_id = {
+        let settings = SETTINGS
+            .read()
+            .map_err(|e| error::AppError::Config(e.to_string()))?;
+        settings.whisper_config.selected_model.clone()
+    };
+
+    {
+        let engine = WHISPER_ENGINE
+            .read()
+            .map_err(|e| error::AppError::Transcription(e.to_string()))?;
+        if let Some(ref e) = *engine {
+            if e.loaded_model_id() == desired_model_id {
+                return Ok(());
+            }
+        }
+    }
+
+    // Need to (re)load — drop read lock, unload, then load
+    unload_whisper();
+
+    let model_id = desired_model_id;
+    let models_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| error::AppError::Config(e.to_string()))?
+        .join("models");
+    let model_info = whisper::models::get_model_tier(&model_id)
+        .ok_or_else(|| error::AppError::Transcription(format!("Unknown model: {model_id}")))?;
+    let model_path = models_dir.join(model_info.file_name);
+
+    if !model_path.exists() {
+        return Err(error::AppError::Transcription(
+            "No model downloaded. Please download a model in Settings.".into(),
+        ));
+    }
+
+    let engine = ai::whisper::WhisperEngine::load(&model_path, &model_id)?;
+    let mut guard = WHISPER_ENGINE
+        .write()
+        .map_err(|e| error::AppError::Transcription(e.to_string()))?;
+    *guard = Some(engine);
+    Ok(())
+}
+
+/// Unloads the Whisper model to free memory.
+pub fn unload_whisper() {
+    if let Ok(mut guard) = WHISPER_ENGINE.write() {
+        *guard = None;
+    }
+}
+
+// ── Whisper IPC commands ─────────────────────────────────────────
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WhisperStatusResponse {
+    state: String,
+    loaded_model: Option<String>,
+}
+
+#[tauri::command]
+async fn get_available_models(app: AppHandle) -> Result<Vec<whisper::models::ModelStatus>, String> {
+    let models_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("models");
+    Ok(whisper::models::list_models(&models_dir))
+}
+
+#[tauri::command]
+async fn download_whisper_model(app: AppHandle, model_id: String) -> Result<(), String> {
+    let models_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("models");
+    whisper::download::download_model(&app, &model_id, &models_dir)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn cancel_whisper_download() -> Result<(), String> {
+    whisper::download::cancel_download();
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_whisper_model(app: AppHandle, model_id: String) -> Result<(), String> {
+    let models_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("models");
+
+    // If this model is currently loaded, unload it first
+    {
+        let engine = WHISPER_ENGINE.read().map_err(|e| e.to_string())?;
+        if let Some(ref e) = *engine {
+            if e.loaded_model_id() == model_id {
+                drop(engine);
+                unload_whisper();
+            }
+        }
+    }
+
+    whisper::models::delete_model(&models_dir, &model_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_whisper_status(app: AppHandle) -> Result<WhisperStatusResponse, String> {
+    let engine = WHISPER_ENGINE.read().map_err(|e| e.to_string())?;
+    let settings = SETTINGS.read().map_err(|e| e.to_string())?;
+
+    if settings.transcription_mode != TranscriptionMode::Local {
+        return Ok(WhisperStatusResponse {
+            state: "notActive".into(),
+            loaded_model: None,
+        });
+    }
+
+    // Engine already loaded in memory
+    if let Some(ref e) = *engine {
+        return Ok(WhisperStatusResponse {
+            state: "ready".into(),
+            loaded_model: Some(e.loaded_model_id().to_string()),
+        });
+    }
+
+    // Engine not loaded yet (lazy) — check if selected model exists on disk
+    let model_id = &settings.whisper_config.selected_model;
+    if let Some(tier) = whisper::models::get_model_tier(model_id) {
+        if let Ok(models_dir) = app.path().app_data_dir() {
+            let model_path = models_dir.join("models").join(tier.file_name);
+            if model_path.exists() {
+                return Ok(WhisperStatusResponse {
+                    state: "ready".into(),
+                    loaded_model: Some(model_id.clone()),
+                });
+            }
+        }
+    }
+
+    Ok(WhisperStatusResponse {
+        state: "noModel".into(),
+        loaded_model: None,
+    })
+}
+
 // ── Settings application ─────────────────────────────────────────
 
 /// Apply settings: rebuild provider pool, re-register hotkey
@@ -275,6 +436,11 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
 
     if let Ok(mut pool) = PROVIDER_POOL.write() {
         pool.rebuild(&entries);
+    }
+
+    // Unload Whisper when switching to Cloud mode
+    if settings.transcription_mode == TranscriptionMode::Cloud {
+        unload_whisper();
     }
 
     // Re-register hotkey on main thread
@@ -317,6 +483,11 @@ pub fn run() {
             save_preset,
             delete_preset,
             set_autostart,
+            get_available_models,
+            download_whisper_model,
+            cancel_whisper_download,
+            delete_whisper_model,
+            get_whisper_status,
         ])
         .setup(|app| {
             // Hide from macOS dock — this is a menu-bar-only (tray) app

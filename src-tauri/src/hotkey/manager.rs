@@ -337,7 +337,76 @@ fn process_and_transcribe(
         return Err(AppError::Audio("No audio recorded".to_string()));
     }
 
-    // Encode using the format selected in settings, with fallback
+    let mode = {
+        crate::SETTINGS
+            .read()
+            .map(|s| s.transcription_mode.clone())
+            .unwrap_or(crate::config::schema::TranscriptionMode::Cloud)
+    };
+
+    match mode {
+        crate::config::schema::TranscriptionMode::Local => {
+            transcribe_local(&samples, sample_rate, channels)
+        }
+        crate::config::schema::TranscriptionMode::Cloud => {
+            transcribe_cloud(&samples, sample_rate, channels)
+        }
+    }
+}
+
+/// Transcribe via local Whisper engine
+fn transcribe_local(
+    samples: &[f32],
+    sample_rate: u32,
+    channels: u16,
+) -> Result<String, AppError> {
+    // Reject dead silence (all zeros) before expensive Whisper inference.
+    // Use a very low threshold to catch only truly silent/dead input devices.
+    let rms = (samples.iter().map(|s| s * s).sum::<f32>() / samples.len() as f32).sqrt();
+    if rms < 0.0001 {
+        return Err(AppError::Audio("No speech detected (audio is silent)".into()));
+    }
+
+    let resampled = audio::encoder::resample_for_whisper(samples, sample_rate, channels)?;
+
+    // Get the app handle for model path resolution
+    let app_handle = {
+        let handle = APP_HANDLE.lock().unwrap();
+        handle
+            .clone()
+            .ok_or_else(|| AppError::Transcription("App handle not available".into()))?
+    };
+
+    crate::ensure_whisper_loaded(&app_handle)?;
+
+    let (language, translate) = {
+        let settings = crate::SETTINGS
+            .read()
+            .map_err(|e| AppError::Config(e.to_string()))?;
+        let lang = match settings.whisper_config.language {
+            crate::config::schema::WhisperLanguage::Auto => "auto",
+            crate::config::schema::WhisperLanguage::German => "de",
+            crate::config::schema::WhisperLanguage::English => "en",
+        }
+        .to_string();
+        (lang, settings.whisper_config.translate_to_english)
+    };
+
+    let engine = crate::WHISPER_ENGINE
+        .read()
+        .map_err(|e| AppError::Transcription(e.to_string()))?;
+    let engine = engine
+        .as_ref()
+        .ok_or_else(|| AppError::Transcription("Whisper engine not loaded".into()))?;
+    engine.transcribe(&resampled, &language, translate)
+}
+
+/// Transcribe via cloud provider pool
+fn transcribe_cloud(
+    samples: &[f32],
+    sample_rate: u32,
+    channels: u16,
+) -> Result<String, AppError> {
     let preferred_format = {
         crate::SETTINGS
             .read()
@@ -347,28 +416,27 @@ fn process_and_transcribe(
 
     let (audio_data, mime_type) = match preferred_format {
         crate::config::schema::AudioFormat::Opus => {
-            match audio::encoder::encode_to_opus(&samples, sample_rate, channels) {
+            match audio::encoder::encode_to_opus(samples, sample_rate, channels) {
                 Ok(data) => (data, audio::encoder::opus_mime_type()),
                 Err(_) => {
                     let wav_data =
-                        audio::encoder::encode_to_wav(&samples, sample_rate, channels)?;
+                        audio::encoder::encode_to_wav(samples, sample_rate, channels)?;
                     (wav_data, audio::encoder::wav_mime_type())
                 }
             }
         }
         crate::config::schema::AudioFormat::Wav => {
-            match audio::encoder::encode_to_wav(&samples, sample_rate, channels) {
+            match audio::encoder::encode_to_wav(samples, sample_rate, channels) {
                 Ok(data) => (data, audio::encoder::wav_mime_type()),
                 Err(_) => {
                     let opus_data =
-                        audio::encoder::encode_to_opus(&samples, sample_rate, channels)?;
+                        audio::encoder::encode_to_opus(samples, sample_rate, channels)?;
                     (opus_data, audio::encoder::opus_mime_type())
                 }
             }
         }
     };
 
-    // Transcribe via provider pool using the active preset's system prompt
     let system_prompt = crate::active_system_prompt();
 
     let pool = crate::PROVIDER_POOL
@@ -420,6 +488,7 @@ fn categorize_error(error: &AppError) -> (&'static str, String) {
             }
         }
         AppError::Output(_) => "Output Error",
+        AppError::ModelDownload(_) => "Model Error",
         _ => "Error",
     };
     (title, body)

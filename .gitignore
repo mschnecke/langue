@@ -424,6 +424,7 @@ FodyWeavers.xsd
 # Tauri / Rust
 target/
 src-tauri/gen/
+src-tauri/.cargo/
 
 # Node.js / Vite
 dist/

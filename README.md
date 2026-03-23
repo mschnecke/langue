@@ -23,7 +23,12 @@ Hotkey-driven, system-tray-style dictation tool. Hold a global hotkey to record 
 - [Node.js](https://nodejs.org/) 24+ (see `.nvmrc`)
 - [Rust](https://rustup.rs/) 1.70+
 - Platform-specific:
-  - **Windows**: Visual Studio Build Tools
+  - **Windows**: Visual Studio Build Tools, [LLVM](https://releases.llvm.org/) (for `libclang.dll`, required by Whisper bindings — install via `winget install LLVM.LLVM` and set `LIBCLANG_PATH=C:\Program Files\LLVM\bin`). You may also need to set `BINDGEN_EXTRA_CLANG_ARGS` to point at your MSVC headers so bindgen can find `stdbool.h`:
+
+    ```cmd
+    set BINDGEN_EXTRA_CLANG_ARGS=-I"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\<version>\include"
+    ```
+
   - **macOS**: Xcode Command Line Tools, Opus (`brew install opus`)
 
 ## Development

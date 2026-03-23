@@ -7,12 +7,14 @@
   import ProviderConfig from './ProviderConfig.svelte';
   import PresetConfig from './PresetConfig.svelte';
   import GeneralConfig from './GeneralConfig.svelte';
+  import ModeToggle from './ModeToggle.svelte';
+  import WhisperConfig from './WhisperConfig.svelte';
 
   import appIconUrl from '../../src-tauri/icons/icon.svg';
 
   let { settings }: { settings: AppSettings } = $props();
 
-  let activeTab = $state<'general' | 'hotkey' | 'audio' | 'providers' | 'presets'>('providers');
+  let activeTab = $state<'general' | 'hotkey' | 'audio' | 'transcription' | 'presets'>('transcription');
   let appVersion = $state('');
 
   getVersion().then((v) => (appVersion = v));
@@ -22,7 +24,7 @@
   }
 
   const tabs = [
-    { id: 'providers' as const, label: 'Providers' },
+    { id: 'transcription' as const, label: 'Transcription' },
     { id: 'presets' as const, label: 'Presets' },
     { id: 'hotkey' as const, label: 'Hotkey' },
     { id: 'audio' as const, label: 'Audio' },
@@ -55,8 +57,15 @@
 
   <!-- Tab content -->
   <div class="flex-1 overflow-y-auto px-6 py-4">
-    {#if activeTab === 'providers'}
-      <ProviderConfig {settings} onUpdate={handleUpdate} />
+    {#if activeTab === 'transcription'}
+      <div class="space-y-4">
+        <ModeToggle {settings} onUpdate={handleUpdate} />
+        {#if settings.transcriptionMode === 'local'}
+          <WhisperConfig {settings} onUpdate={handleUpdate} />
+        {:else}
+          <ProviderConfig {settings} onUpdate={handleUpdate} />
+        {/if}
+      </div>
     {:else if activeTab === 'presets'}
       <PresetConfig {settings} onUpdate={handleUpdate} />
     {:else if activeTab === 'hotkey'}

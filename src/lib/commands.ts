@@ -1,5 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { AppSettings, HotkeyBinding, ModelInfo, Preset, ProviderConfig } from './types';
+import type {
+  AppSettings,
+  HotkeyBinding,
+  ModelInfo,
+  Preset,
+  ProviderConfig,
+  WhisperModelInfo,
+  WhisperStatus,
+} from './types';
 
 // Settings
 export async function loadSettings(): Promise<AppSettings> {
@@ -59,4 +67,25 @@ export async function checkSystemConflict(binding: HotkeyBinding): Promise<boole
 // Auto-start
 export async function setAutostart(enabled: boolean): Promise<void> {
   return invoke('set_autostart', { enabled });
+}
+
+// Whisper model management
+export async function getAvailableModels(): Promise<WhisperModelInfo[]> {
+  return invoke('get_available_models');
+}
+
+export async function downloadWhisperModel(modelId: string): Promise<void> {
+  return invoke('download_whisper_model', { modelId });
+}
+
+export async function cancelWhisperDownload(): Promise<void> {
+  return invoke('cancel_whisper_download');
+}
+
+export async function deleteWhisperModel(modelId: string): Promise<void> {
+  return invoke('delete_whisper_model', { modelId });
+}
+
+export async function getWhisperStatus(): Promise<WhisperStatus> {
+  return invoke('get_whisper_status');
 }

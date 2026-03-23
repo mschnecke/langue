@@ -243,6 +243,51 @@ pub fn encode_to_wav(
     Ok(cursor.into_inner())
 }
 
+/// Resamples raw audio to 16 kHz mono f32 for Whisper inference.
+pub fn resample_for_whisper(
+    samples: &[f32],
+    sample_rate: u32,
+    channels: u16,
+) -> Result<Vec<f32>, AppError> {
+    // Step 1: Mix to mono
+    let mono = if channels > 1 {
+        samples
+            .chunks(channels as usize)
+            .map(|frame| frame.iter().sum::<f32>() / channels as f32)
+            .collect::<Vec<_>>()
+    } else {
+        samples.to_vec()
+    };
+
+    // Step 2: Resample to 16 kHz
+    if sample_rate == 16000 {
+        return Ok(mono);
+    }
+
+    let params = SincInterpolationParameters {
+        sinc_len: 256,
+        f_cutoff: 0.95,
+        interpolation: SincInterpolationType::Linear,
+        oversampling_factor: 256,
+        window: WindowFunction::BlackmanHarris2,
+    };
+
+    let mut resampler = SincFixedIn::<f32>::new(
+        16000.0 / sample_rate as f64,
+        2.0,
+        params,
+        mono.len(),
+        1, // mono
+    )
+    .map_err(|e| AppError::Audio(format!("Resampler init failed: {e}")))?;
+
+    let resampled = resampler
+        .process(&[&mono], None)
+        .map_err(|e| AppError::Audio(format!("Resampling failed: {e}")))?;
+
+    Ok(resampled.into_iter().next().unwrap_or_default())
+}
+
 /// MIME type for Opus audio
 pub fn opus_mime_type() -> &'static str {
     "audio/ogg"

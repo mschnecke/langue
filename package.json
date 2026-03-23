@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
+    "pretauri:dev": "node scripts/patch-whisper-bindings.js",
+    "pretauri:build": "node scripts/patch-whisper-bindings.js",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "check": "svelte-check --tsconfig ./tsconfig.json"
