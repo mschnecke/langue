@@ -10,6 +10,7 @@ export interface AppSettings {
   maxRecordingDurationSecs: number;
   transcriptionMode: TranscriptionMode;
   whisperConfig: WhisperConfig;
+  loggingConfig: LoggingConfig;
 }
 
 export interface Preset {
@@ -44,6 +45,12 @@ export interface WhisperConfig {
   selectedModel: string;
   language: WhisperLanguage;
   translateToEnglish: boolean;
+}
+
+export interface LoggingConfig {
+  logLevel: 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  logMaxFileSizeMb: number;
+  logRetentionDays: number;
 }
 
 export interface WhisperModelInfo {

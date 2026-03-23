@@ -7,6 +7,7 @@
   import ProviderConfig from './ProviderConfig.svelte';
   import PresetConfig from './PresetConfig.svelte';
   import GeneralConfig from './GeneralConfig.svelte';
+  import LoggingConfig from './LoggingConfig.svelte';
   import ModeToggle from './ModeToggle.svelte';
   import WhisperConfig from './WhisperConfig.svelte';
 
@@ -14,7 +15,7 @@
 
   let { settings }: { settings: AppSettings } = $props();
 
-  let activeTab = $state<'general' | 'hotkey' | 'audio' | 'transcription' | 'presets'>('transcription');
+  let activeTab = $state<'general' | 'hotkey' | 'audio' | 'transcription' | 'presets' | 'logging'>('transcription');
   let appVersion = $state('');
 
   getVersion().then((v) => (appVersion = v));
@@ -28,6 +29,7 @@
     { id: 'presets' as const, label: 'Presets' },
     { id: 'hotkey' as const, label: 'Hotkey' },
     { id: 'audio' as const, label: 'Audio' },
+    { id: 'logging' as const, label: 'Logging' },
     { id: 'general' as const, label: 'General' },
   ];
 </script>
@@ -72,6 +74,8 @@
       <HotkeyConfig {settings} onUpdate={handleUpdate} />
     {:else if activeTab === 'audio'}
       <AudioConfig {settings} onUpdate={handleUpdate} />
+    {:else if activeTab === 'logging'}
+      <LoggingConfig {settings} onUpdate={handleUpdate} />
     {:else if activeTab === 'general'}
       <GeneralConfig {settings} onUpdate={handleUpdate} />
     {/if}

@@ -7,6 +7,8 @@ use tauri::{
     AppHandle, Manager,
 };
 
+use tracing::{debug, info};
+
 static APP_HANDLE: Lazy<RwLock<Option<AppHandle>>> = Lazy::new(|| RwLock::new(None));
 
 /// Set up the system tray icon and menu.
@@ -36,6 +38,8 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // macOS: mark as template image so the system auto-inverts for dark/light mode
     #[cfg(target_os = "macos")]
     let tray_builder = tray_builder.icon_as_template(true);
+
+    info!("System tray initialized");
 
     let _tray = tray_builder
         .on_menu_event(move |app, event| match event.id().as_ref() {
@@ -79,6 +83,7 @@ pub fn send_info_notification(title: &str, message: &str) {
 }
 
 fn send_notification_impl(title: &str, message: &str, force: bool) {
+    debug!(title, "Sending notification");
     if !force {
         if let Ok(settings) = crate::SETTINGS.read() {
             if !settings.show_tray_notifications {

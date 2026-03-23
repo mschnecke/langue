@@ -2,6 +2,8 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use tracing::{debug, error, info, warn};
+
 use super::gemini::GeminiProvider;
 use super::openai::OpenAiProvider;
 use super::provider::{TranscriptionProvider, TranscriptionResult};
@@ -34,6 +36,7 @@ impl ProviderPool {
         self.providers.clear();
         self.current_index.store(0, Ordering::Relaxed);
 
+        info!(count = entries.len(), "Rebuilding provider pool");
         for entry in entries {
             match entry.provider_type.as_str() {
                 "gemini" | "Gemini" => {
@@ -74,14 +77,17 @@ impl ProviderPool {
             let idx = (start + i) % len;
             let provider = &self.providers[idx];
 
+            debug!(provider = provider.provider_name(), attempt = i + 1, "Trying provider");
             match provider.transcribe(audio_data, mime_type, system_prompt).await {
                 Ok(result) => return Ok(result),
                 Err(e) => {
+                    warn!(provider = provider.provider_name(), error = %e, "Provider failed");
                     errors.push(format!("{}: {}", provider.provider_name(), e));
                 }
             }
         }
 
+        error!(errors = ?errors, "All providers failed");
         Err(AppError::Transcription(format!(
             "All providers failed: {}",
             errors.join("; ")

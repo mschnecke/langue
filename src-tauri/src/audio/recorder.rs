@@ -6,6 +6,8 @@ use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
+use tracing::{debug, error, info};
+
 use crate::error::AppError;
 
 /// Message sent to the recording thread
@@ -32,12 +34,15 @@ impl AudioRecorderHandle {
             .default_input_device()
             .ok_or_else(|| AppError::Audio("No input device found".to_string()))?;
 
+        debug!(device = ?device.name().unwrap_or_default(), "Using input device");
+
         let config = device
             .default_input_config()
             .map_err(|e| AppError::Audio(format!("Failed to get input config: {}", e)))?;
 
         let sample_rate = config.sample_rate().0;
         let channels = config.channels();
+        info!(sample_rate, channels, format = ?config.sample_format(), "Audio recording started");
         let samples = Arc::new(Mutex::new(Vec::new()));
         let is_recording = Arc::new(AtomicBool::new(true));
 
@@ -56,7 +61,9 @@ impl AudioRecorderHandle {
                 }
             };
 
-            let err_fn = |_err| {};
+            let err_fn = |err| {
+                error!(error = %err, "Audio stream error");
+            };
 
             let stream = match config_clone.sample_format() {
                 cpal::SampleFormat::F32 => {
@@ -146,6 +153,7 @@ impl AudioRecorderHandle {
 
     /// Stop recording and return (samples, sample_rate, channels).
     pub fn stop(mut self) -> Result<(Vec<f32>, u32, u16), AppError> {
+        info!("Stopping audio recording");
         let _ = self.command_tx.send(RecorderCommand::Stop);
 
         if let Some(handle) = self.thread_handle.take() {
@@ -158,6 +166,7 @@ impl AudioRecorderHandle {
             .map_err(|_| AppError::Audio("Failed to lock samples".to_string()))?
             .clone();
 
+        info!(sample_count = samples.len(), "Audio recording stopped");
         Ok((samples, self.sample_rate, self.channels))
     }
 }

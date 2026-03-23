@@ -3,6 +3,7 @@ mod audio;
 mod config;
 mod error;
 mod hotkey;
+mod logging;
 mod output;
 mod tray;
 mod whisper;
@@ -406,6 +407,19 @@ fn get_whisper_status(app: AppHandle) -> Result<WhisperStatusResponse, String> {
     })
 }
 
+// ── Logging commands ──────────────────────────────────────────────
+
+#[tauri::command]
+fn open_log_folder() -> Result<(), String> {
+    let dir = logging::log_dir();
+    open::that(&dir).map_err(|e| format!("Failed to open log folder: {}", e))
+}
+
+#[tauri::command]
+fn get_log_path() -> String {
+    logging::log_dir().to_string_lossy().to_string()
+}
+
 // ── Settings application ─────────────────────────────────────────
 
 /// Apply settings: rebuild provider pool, re-register hotkey
@@ -413,6 +427,11 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
     // Update cached settings
     if let Ok(mut cached) = SETTINGS.write() {
         *cached = settings.clone();
+    }
+
+    // Update log level dynamically
+    if let Err(e) = logging::set_log_level(&settings.logging_config.log_level) {
+        tracing::warn!("Failed to update log level: {}", e);
     }
 
     // Rebuild provider pool from enabled providers
@@ -488,6 +507,8 @@ pub fn run() {
             cancel_whisper_download,
             delete_whisper_model,
             get_whisper_status,
+            open_log_folder,
+            get_log_path,
         ])
         .setup(|app| {
             // Hide from macOS dock — this is a menu-bar-only (tray) app
@@ -513,7 +534,14 @@ pub fn run() {
             let settings = config::manager::load_settings()
                 .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
+            // Initialize logging (after config load, before other subsystems)
+            if let Err(e) = logging::init(&settings.logging_config) {
+                eprintln!("Warning: Failed to initialize logging: {}", e);
+            }
+            tracing::info!("Application starting");
+
             // Register hotkey from config
+            tracing::info!("Registering hotkey from config");
             let binding = HotkeyBinding {
                 modifiers: settings.hotkey.modifiers.clone(),
                 key: settings.hotkey.key.clone(),
@@ -547,6 +575,8 @@ pub fn run() {
             if let Ok(mut cached) = SETTINGS.write() {
                 *cached = settings.clone();
             }
+
+            tracing::info!("Application setup complete");
 
             // First launch: enable auto-start, show welcome notification, open settings
             if is_first_launch {

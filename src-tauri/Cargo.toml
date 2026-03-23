@@ -33,6 +33,11 @@ base64 = "0.22"
 arboard = "3"
 enigo = "0.3"
 uuid = { version = "1", features = ["v4"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "registry"] }
+tracing-appender = "0.2"
+rolling-file = "0.2"
+open = "5"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3.2", features = ["NSApplication", "NSRunningApplication"] }

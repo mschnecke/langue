@@ -37,6 +37,9 @@ pub struct AppSettings {
 
     #[serde(default)]
     pub whisper_config: WhisperConfig,
+
+    #[serde(default)]
+    pub logging_config: LoggingConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -142,6 +145,41 @@ fn default_whisper_model() -> String {
     "small".to_string()
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoggingConfig {
+    #[serde(default = "default_log_level")]
+    pub log_level: String,
+
+    #[serde(default = "default_log_max_file_size_mb")]
+    pub log_max_file_size_mb: u32,
+
+    #[serde(default = "default_log_retention_days")]
+    pub log_retention_days: u32,
+}
+
+impl Default for LoggingConfig {
+    fn default() -> Self {
+        Self {
+            log_level: default_log_level(),
+            log_max_file_size_mb: default_log_max_file_size_mb(),
+            log_retention_days: default_log_retention_days(),
+        }
+    }
+}
+
+fn default_log_level() -> String {
+    "info".to_string()
+}
+
+fn default_log_max_file_size_mb() -> u32 {
+    1
+}
+
+fn default_log_retention_days() -> u32 {
+    7
+}
+
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
@@ -156,6 +194,7 @@ impl Default for AppSettings {
             max_recording_duration_secs: default_max_recording_duration_secs(),
             transcription_mode: TranscriptionMode::default(),
             whisper_config: WhisperConfig::default(),
+            logging_config: LoggingConfig::default(),
         }
     }
 }

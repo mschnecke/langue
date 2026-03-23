@@ -89,3 +89,12 @@ export async function deleteWhisperModel(modelId: string): Promise<void> {
 export async function getWhisperStatus(): Promise<WhisperStatus> {
   return invoke('get_whisper_status');
 }
+
+// Logging
+export async function openLogFolder(): Promise<void> {
+  return invoke('open_log_folder');
+}
+
+export async function getLogPath(): Promise<string> {
+  return invoke('get_log_path');
+}

@@ -2,6 +2,8 @@
 
 use std::path::PathBuf;
 
+use tracing::{info, warn};
+
 use crate::error::AppError;
 
 use super::presets::get_builtin_presets;
@@ -25,6 +27,7 @@ pub fn init() -> Result<bool, AppError> {
         return Ok(false);
     }
 
+    info!("First launch — creating default settings");
     let defaults = AppSettings::default();
     save_settings(&defaults)?;
     Ok(true)
@@ -47,12 +50,15 @@ pub fn load_settings() -> Result<AppSettings, AppError> {
         }
     }
 
+    info!("Settings loaded successfully");
+
     // Validate active_preset_id: fall back to first built-in if invalid
     if !settings.presets.iter().any(|p| p.id == settings.active_preset_id) {
         let fallback_id = builtins
             .first()
             .map(|p| p.id.clone())
             .unwrap_or_else(|| "de-transcribe".to_string());
+        warn!(invalid_id = %settings.active_preset_id, fallback = %fallback_id, "Invalid active preset, falling back");
         settings.active_preset_id = fallback_id;
         // Persist the corrected setting
         save_settings(&settings)?;

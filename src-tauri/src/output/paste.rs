@@ -1,11 +1,13 @@
 //! Paste simulation via enigo (Ctrl+V / Cmd+V)
 
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+use tracing::debug;
 
 use crate::error::AppError;
 
 /// Simulate a paste keystroke (Ctrl+V on Windows/Linux, Cmd+V on macOS)
 pub fn simulate_paste() -> Result<(), AppError> {
+    debug!("Simulating paste keystroke");
     let mut enigo = Enigo::new(&Settings::default())
         .map_err(|e| AppError::Output(format!("Failed to create input simulator: {}", e)))?;
 

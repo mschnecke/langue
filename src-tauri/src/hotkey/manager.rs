@@ -10,6 +10,8 @@ use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use once_cell::sync::Lazy;
 use tauri::AppHandle;
 
+use tracing::{debug, error, info};
+
 use super::conflict::HotkeyBinding;
 use super::parse::{parse_code, parse_modifiers};
 use crate::audio;
@@ -80,6 +82,8 @@ pub fn init(app: &AppHandle) -> Result<(), AppError> {
 
 /// Register a hotkey binding. Must be called from the main thread.
 pub fn register(binding: &HotkeyBinding) -> Result<(), AppError> {
+    info!(key = %binding.key, modifiers = ?binding.modifiers, "Registering hotkey");
+
     // Unregister existing hotkey first
     unregister()?;
 
@@ -99,6 +103,7 @@ pub fn register(binding: &HotkeyBinding) -> Result<(), AppError> {
     let mut registry = REGISTRY.lock().unwrap();
     *registry = Some((hotkey_id, hotkey));
 
+    info!("Hotkey registered successfully");
     Ok(())
 }
 
@@ -204,6 +209,7 @@ fn handle_hotkey_press() {
         return;
     }
 
+    info!("Recording started");
     match audio::recorder::AudioRecorderHandle::start() {
         Ok(recorder) => {
             {
@@ -242,6 +248,8 @@ fn handle_hotkey_press() {
             });
         }
         Err(e) => {
+            error!(error = %e, "Audio recorder initialization failed");
+
             #[cfg(target_os = "macos")]
             if e.to_string().contains("No input device") {
                 tray::send_notification(
@@ -258,13 +266,15 @@ fn handle_hotkey_press() {
 
 /// Stop recording, encode audio, and transcribe. Called from both modes and the max-duration timer.
 fn stop_and_transcribe() {
+    info!("Recording stopped, starting transcription pipeline");
+
     let recorder = {
         let mut active = ACTIVE_RECORDER.lock().unwrap();
         active.take()
     };
 
     let Some(recorder) = recorder else {
-        // No active recording (edge case: release without press)
+        debug!("No active recording to stop");
         return;
     };
 
@@ -290,6 +300,7 @@ fn stop_and_transcribe() {
 
             match result {
                 Ok(text) => {
+                    info!("Transcription complete, pasting result");
                     if let Err(e) = crate::output::clipboard::set_clipboard_text(&text) {
                         tray::send_notification(
                             "Output Error",
@@ -344,6 +355,8 @@ fn process_and_transcribe(
             .unwrap_or(crate::config::schema::TranscriptionMode::Cloud)
     };
 
+    debug!(mode = ?mode, sample_count = samples.len(), sample_rate, channels, "Processing audio");
+
     match mode {
         crate::config::schema::TranscriptionMode::Local => {
             transcribe_local(&samples, sample_rate, channels)
@@ -367,6 +380,7 @@ fn transcribe_local(
         return Err(AppError::Audio("No speech detected (audio is silent)".into()));
     }
 
+    debug!("Resampling audio for Whisper");
     let resampled = audio::encoder::resample_for_whisper(samples, sample_rate, channels)?;
 
     // Get the app handle for model path resolution
@@ -377,6 +391,7 @@ fn transcribe_local(
             .ok_or_else(|| AppError::Transcription("App handle not available".into()))?
     };
 
+    debug!("Ensuring Whisper model is loaded");
     crate::ensure_whisper_loaded(&app_handle)?;
 
     let (language, translate) = {
@@ -398,6 +413,7 @@ fn transcribe_local(
     let engine = engine
         .as_ref()
         .ok_or_else(|| AppError::Transcription("Whisper engine not loaded".into()))?;
+    info!(language = %language, translate, "Running Whisper inference");
     engine.transcribe(&resampled, &language, translate)
 }
 
@@ -414,6 +430,7 @@ fn transcribe_cloud(
             .unwrap_or(crate::config::schema::AudioFormat::Opus)
     };
 
+    debug!(format = ?preferred_format, "Encoding audio for cloud transcription");
     let (audio_data, mime_type) = match preferred_format {
         crate::config::schema::AudioFormat::Opus => {
             match audio::encoder::encode_to_opus(samples, sample_rate, channels) {
@@ -446,8 +463,10 @@ fn transcribe_cloud(
     let rt = tokio::runtime::Runtime::new()
         .map_err(|e| AppError::Transcription(format!("Failed to create runtime: {}", e)))?;
 
+    info!(mime_type, audio_size = audio_data.len(), "Sending audio to cloud provider");
     let result = rt.block_on(pool.transcribe(&audio_data, mime_type, &system_prompt))?;
 
+    info!("Cloud transcription complete");
     Ok(result.text)
 }
 
@@ -467,6 +486,7 @@ fn parse_hotkey(binding: &HotkeyBinding) -> Result<HotKey, AppError> {
 
 /// Categorize an AppError into a user-friendly notification title and body
 fn categorize_error(error: &AppError) -> (&'static str, String) {
+    error!(error = ?error, "Pipeline error");
     let body = error.to_string();
     let title = match error {
         AppError::Audio(_) => "Recording Error",
