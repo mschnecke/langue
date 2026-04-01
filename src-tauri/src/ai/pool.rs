@@ -40,19 +40,16 @@ impl ProviderPool {
         for entry in entries {
             match entry.provider_type.as_str() {
                 "gemini" | "Gemini" => {
-                    let provider =
-                        GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
+                    let provider = GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
                     self.providers.push(Box::new(provider));
                 }
                 "openai" | "OpenAi" => {
-                    let provider =
-                        OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
+                    let provider = OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
                     self.providers.push(Box::new(provider));
                 }
                 _ => {}
             }
         }
-
     }
 
     /// Transcribe audio using round-robin selection with fallback.
@@ -77,8 +74,15 @@ impl ProviderPool {
             let idx = (start + i) % len;
             let provider = &self.providers[idx];
 
-            debug!(provider = provider.provider_name(), attempt = i + 1, "Trying provider");
-            match provider.transcribe(audio_data, mime_type, system_prompt).await {
+            debug!(
+                provider = provider.provider_name(),
+                attempt = i + 1,
+                "Trying provider"
+            );
+            match provider
+                .transcribe(audio_data, mime_type, system_prompt)
+                .await
+            {
                 Ok(result) => return Ok(result),
                 Err(e) => {
                     warn!(provider = provider.provider_name(), error = %e, "Provider failed");
@@ -98,13 +102,11 @@ impl ProviderPool {
     pub async fn test_provider(entry: &ProviderEntry) -> Result<bool, AppError> {
         match entry.provider_type.as_str() {
             "gemini" | "Gemini" => {
-                let provider =
-                    GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
+                let provider = GeminiProvider::new(entry.api_key.clone(), entry.model.clone());
                 provider.test_connection().await
             }
             "openai" | "OpenAi" => {
-                let provider =
-                    OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
+                let provider = OpenAiProvider::new(entry.api_key.clone(), entry.model.clone());
                 provider.test_connection().await
             }
             other => Err(AppError::Transcription(format!(

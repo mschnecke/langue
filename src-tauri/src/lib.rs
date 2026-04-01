@@ -25,8 +25,7 @@ pub static PROVIDER_POOL: Lazy<RwLock<ProviderPool>> =
     Lazy::new(|| RwLock::new(ProviderPool::new()));
 
 /// Global settings cache, used to read the active preset's system prompt
-pub static SETTINGS: Lazy<RwLock<AppSettings>> =
-    Lazy::new(|| RwLock::new(AppSettings::default()));
+pub static SETTINGS: Lazy<RwLock<AppSettings>> = Lazy::new(|| RwLock::new(AppSettings::default()));
 
 /// Global Whisper engine — loaded lazily when Local mode is active
 pub static WHISPER_ENGINE: Lazy<RwLock<Option<ai::whisper::WhisperEngine>>> =
@@ -181,7 +180,11 @@ async fn set_active_preset(preset_id: String) -> Result<(), String> {
     config::manager::save_settings(&settings).map_err(|e| e.to_string())?;
 
     // Update cached settings and tray tooltip
-    if let Some(preset) = settings.presets.iter().find(|p| p.id == settings.active_preset_id) {
+    if let Some(preset) = settings
+        .presets
+        .iter()
+        .find(|p| p.id == settings.active_preset_id)
+    {
         tray::set_tray_tooltip(&preset.name);
     }
     if let Ok(mut cached) = SETTINGS.write() {
@@ -205,7 +208,11 @@ async fn save_preset(preset: Preset) -> Result<(), String> {
     config::manager::save_settings(&settings).map_err(|e| e.to_string())?;
 
     // Update tray tooltip if active preset name changed
-    if let Some(active) = settings.presets.iter().find(|p| p.id == settings.active_preset_id) {
+    if let Some(active) = settings
+        .presets
+        .iter()
+        .find(|p| p.id == settings.active_preset_id)
+    {
         tray::set_tray_tooltip(&active.name);
     }
     if let Ok(mut cached) = SETTINGS.write() {
@@ -242,7 +249,11 @@ async fn delete_preset(preset_id: String) -> Result<(), String> {
     config::manager::save_settings(&settings).map_err(|e| e.to_string())?;
 
     // Update tray tooltip (active preset may have changed due to fallback)
-    if let Some(active) = settings.presets.iter().find(|p| p.id == settings.active_preset_id) {
+    if let Some(active) = settings
+        .presets
+        .iter()
+        .find(|p| p.id == settings.active_preset_id)
+    {
         tray::set_tray_tooltip(&active.name);
     }
     if let Ok(mut cached) = SETTINGS.write() {
@@ -473,7 +484,11 @@ async fn apply_settings(settings: &AppSettings, app: &AppHandle) {
     });
 
     // Update tray tooltip with active preset name
-    if let Some(preset) = settings.presets.iter().find(|p| p.id == settings.active_preset_id) {
+    if let Some(preset) = settings
+        .presets
+        .iter()
+        .find(|p| p.id == settings.active_preset_id)
+    {
         tray::set_tray_tooltip(&preset.name);
     }
 }
@@ -527,8 +542,8 @@ pub fn run() {
             hotkey::manager::init(app.handle())?;
 
             // Initialize config (creates defaults on first launch)
-            let is_first_launch = config::manager::init()
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+            let is_first_launch =
+                config::manager::init().map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
 
             // Load settings and apply
             let settings = config::manager::load_settings()
@@ -597,7 +612,11 @@ pub fn run() {
             }
 
             // Set tray tooltip with active preset
-            if let Some(preset) = settings.presets.iter().find(|p| p.id == settings.active_preset_id) {
+            if let Some(preset) = settings
+                .presets
+                .iter()
+                .find(|p| p.id == settings.active_preset_id)
+            {
                 tray::set_tray_tooltip(&preset.name);
             }
 

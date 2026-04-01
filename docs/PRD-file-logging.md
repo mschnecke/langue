@@ -103,6 +103,7 @@ The Logging tab in Settings should follow the same layout patterns as existing t
 ### Log File Location
 
 Store logs in a `logs/` subdirectory under the user's home folder:
+
 - Windows: `%USERPROFILE%/.pisum-transcript/logs/`
 - macOS: `~/.pisum-transcript/logs/`
 - Linux: `~/.pisum-transcript/logs/`

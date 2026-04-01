@@ -44,12 +44,12 @@ npm run check          # Type-check Svelte/TypeScript
 
 Settings are stored as JSON in the platform config directory and managed via the settings UI (accessible from the system tray).
 
-| Setting              | Default          | Description                              |
-| -------------------- | ---------------- | ---------------------------------------- |
-| Hotkey               | Ctrl+Shift+Space | Global push-to-talk key                  |
-| Audio format         | Opus             | Opus or WAV (with automatic fallback)    |
-| Start with system    | On               | Launch at login                          |
-| Tray notifications   | On               | Show OS notifications for status updates |
+| Setting            | Default          | Description                              |
+| ------------------ | ---------------- | ---------------------------------------- |
+| Hotkey             | Ctrl+Shift+Space | Global push-to-talk key                  |
+| Audio format       | Opus             | Opus or WAV (with automatic fallback)    |
+| Start with system  | On               | Launch at login                          |
+| Tray notifications | On               | Show OS notifications for status updates |
 
 ## macOS Permissions
 

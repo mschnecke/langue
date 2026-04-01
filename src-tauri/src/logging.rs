@@ -13,8 +13,8 @@ use crate::error::AppError;
 
 /// Type-erased reload handle for dynamic log level changes.
 /// We store a closure that captures the concrete handle type.
-static LOG_LEVEL_UPDATER: OnceLock<Mutex<Box<dyn Fn(&str) -> Result<(), String> + Send>>> =
-    OnceLock::new();
+type LogLevelUpdaterFn = dyn Fn(&str) -> Result<(), String> + Send;
+static LOG_LEVEL_UPDATER: OnceLock<Mutex<Box<LogLevelUpdaterFn>>> = OnceLock::new();
 
 /// Non-blocking writer guard — must live for the app's lifetime
 static _GUARD: OnceLock<tracing_appender::non_blocking::WorkerGuard> = OnceLock::new();
@@ -67,11 +67,7 @@ pub fn init(config: &LoggingConfig) -> Result<(), AppError> {
 
     // Optional stdout layer for dev mode
     let stdout_layer = if cfg!(debug_assertions) {
-        Some(
-            fmt::layer()
-                .with_target(true)
-                .with_ansi(true),
-        )
+        Some(fmt::layer().with_target(true).with_ansi(true))
     } else {
         None
     };

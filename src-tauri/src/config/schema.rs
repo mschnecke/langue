@@ -93,31 +93,21 @@ pub enum ProviderType {
     OpenAi,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum TranscriptionMode {
+    #[default]
     Cloud,
     Local,
 }
 
-impl Default for TranscriptionMode {
-    fn default() -> Self {
-        TranscriptionMode::Cloud
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum WhisperLanguage {
     Auto,
+    #[default]
     German,
     English,
-}
-
-impl Default for WhisperLanguage {
-    fn default() -> Self {
-        WhisperLanguage::German
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,116 +1,116 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "vite: dev",
-      "type": "shell",
-      "command": "npm run dev",
-      "group": "build",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "vite",
-        "pattern": { "regexp": "^$" },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "Local:\\s+http"
-        }
-      }
-    },
-    {
-      "label": "cargo: build debug",
-      "type": "shell",
-      "command": "cargo build",
-      "options": { "cwd": "${workspaceFolder}/src-tauri" },
-      "group": "build",
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "tauri: debug build",
-      "dependsOn": ["vite: dev", "cargo: build debug"],
-      "dependsOrder": "sequence",
-      "group": "build",
-      "problemMatcher": []
-    },
-    {
-      "label": "kill vite",
-      "type": "shell",
-      "command": "",
-      "windows": {
-        "command": "taskkill /F /FI \"WINDOWTITLE eq npm run dev\" /T 2>nul; exit 0"
-      },
-      "osx": {
-        "command": "pkill -f 'vite' || true"
-      },
-      "linux": {
-        "command": "pkill -f 'vite' || true"
-      },
-      "presentation": {
-        "reveal": "silent",
-        "close": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "cargo: build",
-      "type": "shell",
-      "command": "cargo build",
-      "options": { "cwd": "${workspaceFolder}/src-tauri" },
-      "group": "build",
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "cargo: check",
-      "type": "shell",
-      "command": "cargo check",
-      "options": { "cwd": "${workspaceFolder}/src-tauri" },
-      "group": "build",
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "tauri: dev",
-      "type": "shell",
-      "command": "npm run tauri:dev",
-      "group": { "kind": "build", "isDefault": true },
-      "isBackground": true,
-      "problemMatcher": {
-        "pattern": { "regexp": "." },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "Running",
-          "endsPattern": "Finished"
-        }
-      }
-    },
-    {
-      "label": "tauri: build",
-      "type": "shell",
-      "command": "npm run tauri:build",
-      "group": "build",
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "cargo: clippy",
-      "type": "shell",
-      "command": "cargo clippy --all-targets --all-features -- -D warnings",
-      "options": { "cwd": "${workspaceFolder}/src-tauri" },
-      "group": "test",
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "cargo: test",
-      "type": "shell",
-      "command": "cargo test",
-      "options": { "cwd": "${workspaceFolder}/src-tauri" },
-      "group": { "kind": "test", "isDefault": true },
-      "problemMatcher": "$rustc"
-    },
-    {
-      "label": "svelte: check",
-      "type": "shell",
-      "command": "npm run check",
-      "group": "test",
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "vite: dev",
+			"type": "shell",
+			"command": "npm run dev",
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "vite",
+				"pattern": { "regexp": "^$" },
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "Local:\\s+http"
+				}
+			}
+		},
+		{
+			"label": "cargo: build debug",
+			"type": "shell",
+			"command": "cargo build",
+			"options": { "cwd": "${workspaceFolder}/src-tauri" },
+			"group": "build",
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "tauri: debug build",
+			"dependsOn": ["vite: dev", "cargo: build debug"],
+			"dependsOrder": "sequence",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "kill vite",
+			"type": "shell",
+			"command": "",
+			"windows": {
+				"command": "taskkill /F /FI \"WINDOWTITLE eq npm run dev\" /T 2>nul; exit 0"
+			},
+			"osx": {
+				"command": "pkill -f 'vite' || true"
+			},
+			"linux": {
+				"command": "pkill -f 'vite' || true"
+			},
+			"presentation": {
+				"reveal": "silent",
+				"close": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "cargo: build",
+			"type": "shell",
+			"command": "cargo build",
+			"options": { "cwd": "${workspaceFolder}/src-tauri" },
+			"group": "build",
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "cargo: check",
+			"type": "shell",
+			"command": "cargo check",
+			"options": { "cwd": "${workspaceFolder}/src-tauri" },
+			"group": "build",
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "tauri: dev",
+			"type": "shell",
+			"command": "npm run tauri:dev",
+			"group": { "kind": "build", "isDefault": true },
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": { "regexp": "." },
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Running",
+					"endsPattern": "Finished"
+				}
+			}
+		},
+		{
+			"label": "tauri: build",
+			"type": "shell",
+			"command": "npm run tauri:build",
+			"group": "build",
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "cargo: clippy",
+			"type": "shell",
+			"command": "cargo clippy --all-targets --all-features -- -D warnings",
+			"options": { "cwd": "${workspaceFolder}/src-tauri" },
+			"group": "test",
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "cargo: test",
+			"type": "shell",
+			"command": "cargo test",
+			"options": { "cwd": "${workspaceFolder}/src-tauri" },
+			"group": { "kind": "test", "isDefault": true },
+			"problemMatcher": "$rustc"
+		},
+		{
+			"label": "svelte: check",
+			"type": "shell",
+			"command": "npm run check",
+			"group": "test",
+			"problemMatcher": []
+		}
+	]
 }

@@ -127,16 +127,15 @@ pub fn set_recording_state(recording: bool) {
             };
 
             // Try resource dir first, then dev paths
-            let icon = try_load_icon_by_name(app, &icon_name)
-                .unwrap_or_else(|| {
-                    if recording {
-                        Image::from_bytes(include_bytes!("../icons/tray-icon-recording.png"))
-                            .expect("Failed to load embedded recording icon")
-                    } else {
-                        Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
-                            .expect("Failed to load embedded tray icon")
-                    }
-                });
+            let icon = try_load_icon_by_name(app, &icon_name).unwrap_or_else(|| {
+                if recording {
+                    Image::from_bytes(include_bytes!("../icons/tray-icon-recording.png"))
+                        .expect("Failed to load embedded recording icon")
+                } else {
+                    Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
+                        .expect("Failed to load embedded tray icon")
+                }
+            });
 
             let _ = tray.set_icon(Some(icon));
         }
@@ -224,10 +223,8 @@ fn get_recording_icon_name() -> String {
 /// Detect if the system is in dark mode (Windows/Linux only).
 #[cfg(target_os = "windows")]
 fn is_dark_mode() -> bool {
-    use windows::Win32::System::Registry::{
-        RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD,
-    };
     use windows::core::w;
+    use windows::Win32::System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD};
 
     let mut data: u32 = 1;
     let mut size = std::mem::size_of::<u32>() as u32;

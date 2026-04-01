@@ -8,13 +8,13 @@
 
 Five Whisper variants were evaluated across Rust integration feasibility, cross-platform performance, and maintenance status. Here's how they stack up:
 
-| Variant | Rust integration | macOS M4 GPU | Windows x86 CPU | Quantized models | Maintenance | Verdict |
-|---|---|---|---|---|---|---|
-| **whisper.cpp / whisper-rs** | Native crate, clean API | **Metal + CoreML/ANE** | AVX2 + **Vulkan iGPU** | Full GGML (Q4–Q8) | **v1.8.4, March 2026** | ✅ **Best fit** |
-| faster-whisper (CTranslate2) | Python-bound; `ct2rs` crate exists but immature | CPU-only (no Metal) | Good (MKL/oneDNN) | INT8 CTranslate2 | v1.2.1, Oct 2025 | ❌ No Metal, Python baggage |
-| candle-whisper (HuggingFace) | Pure Rust, but example-level code | Metal (stability issues) | MKL/gemm | **None for Whisper** | v0.9.2, Jan 2026 | ❌ No quantization, 2–5× slower |
-| ONNX Runtime (`ort` crate) | Production Rust bindings | CoreML EP | DirectML + CPU | INT4/INT8 ONNX | Active | ⚠️ Viable alternative, complex |
-| whisper-burn (Burn framework) | Pure Rust | WGPU/Metal | WGPU/DirectX | None | Experimental | ❌ Immature |
+| Variant                       | Rust integration                                | macOS M4 GPU             | Windows x86 CPU        | Quantized models     | Maintenance            | Verdict                         |
+| ----------------------------- | ----------------------------------------------- | ------------------------ | ---------------------- | -------------------- | ---------------------- | ------------------------------- |
+| **whisper.cpp / whisper-rs**  | Native crate, clean API                         | **Metal + CoreML/ANE**   | AVX2 + **Vulkan iGPU** | Full GGML (Q4–Q8)    | **v1.8.4, March 2026** | ✅ **Best fit**                 |
+| faster-whisper (CTranslate2)  | Python-bound; `ct2rs` crate exists but immature | CPU-only (no Metal)      | Good (MKL/oneDNN)      | INT8 CTranslate2     | v1.2.1, Oct 2025       | ❌ No Metal, Python baggage     |
+| candle-whisper (HuggingFace)  | Pure Rust, but example-level code               | Metal (stability issues) | MKL/gemm               | **None for Whisper** | v0.9.2, Jan 2026       | ❌ No quantization, 2–5× slower |
+| ONNX Runtime (`ort` crate)    | Production Rust bindings                        | CoreML EP                | DirectML + CPU         | INT4/INT8 ONNX       | Active                 | ⚠️ Viable alternative, complex  |
+| whisper-burn (Burn framework) | Pure Rust                                       | WGPU/Metal               | WGPU/DirectX           | None                 | Experimental           | ❌ Immature                     |
 
 **whisper-rs** (v0.16.0, released March 12, 2026) wraps whisper.cpp via FFI with a clean, idiomatic Rust API. It has **183,000+ crate downloads**, compile-time feature flags for every acceleration backend, and proven Tauri integration. The crate is actively maintained by tazz4843 and tracks whisper.cpp upstream closely.
 
@@ -44,12 +44,12 @@ whisper-rs = { version = "0.16", features = ["vulkan"] }
 
 Benchmark data for representative hardware with the `small` model (244M params):
 
-| Platform | Backend | 30s audio | 10s audio |
-|---|---|---|---|
-| M4 (Metal) | GPU | ~2s | <1s |
-| M4 (CPU only) | NEON + Accelerate | ~5s | ~2s |
-| Intel i5-12th gen (AVX2) | CPU | ~5–8s | ~2–3s |
-| Intel i5 + iGPU (Vulkan) | iGPU | ~1–2s (estimated) | <1s (estimated) |
+| Platform                 | Backend           | 30s audio         | 10s audio       |
+| ------------------------ | ----------------- | ----------------- | --------------- |
+| M4 (Metal)               | GPU               | ~2s               | <1s             |
+| M4 (CPU only)            | NEON + Accelerate | ~5s               | ~2s             |
+| Intel i5-12th gen (AVX2) | CPU               | ~5–8s             | ~2–3s           |
+| Intel i5 + iGPU (Vulkan) | iGPU              | ~1–2s (estimated) | <1s (estimated) |
 
 ---
 

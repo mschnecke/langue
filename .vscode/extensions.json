@@ -1,10 +1,10 @@
 {
-  "recommendations": [
-    "rust-lang.rust-analyzer",
-    "svelte.svelte-vscode",
-    "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode",
-    "tauri-apps.tauri-vscode",
-    "vadimcn.vscode-lldb"
-  ]
+	"recommendations": [
+		"rust-lang.rust-analyzer",
+		"svelte.svelte-vscode",
+		"bradlc.vscode-tailwindcss",
+		"esbenp.prettier-vscode",
+		"tauri-apps.tauri-vscode",
+		"vadimcn.vscode-lldb"
+	]
 }

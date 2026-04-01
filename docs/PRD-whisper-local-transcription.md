@@ -118,6 +118,7 @@ Whisper runs as a separate "local engine" mode distinct from the cloud provider 
 The settings page gains a new top-level control for transcription mode. When "Local (Whisper)" is selected, the Providers tab is replaced with a Whisper configuration panel.
 
 **Whisper Configuration Panel:**
+
 - Model selector showing three tiers with descriptions (accuracy vs. speed vs. size tradeoffs)
 - Download status per model: "Not downloaded", "Downloading (45%)", "Downloaded (574 MB)"
 - Download/Delete action buttons per model
@@ -125,6 +126,7 @@ The settings page gains a new top-level control for transcription mode. When "Lo
 - Status indicator: "Model loaded and ready" / "No model downloaded" / "Loading model..."
 
 **Mode Toggle:**
+
 - Prominent toggle at the top of settings: "Local (Whisper)" | "Cloud (API)"
 - Switching modes immediately changes which configuration panel is visible
 - The inactive mode's configuration is preserved but hidden
@@ -134,6 +136,7 @@ The settings page gains a new top-level control for transcription mode. When "Lo
 ### Dependencies
 
 - `whisper-rs` v0.16.0 with platform-conditional features:
+
   ```toml
   [target.'cfg(target_os = "macos")'.dependencies]
   whisper-rs = { version = "0.16", features = ["metal"] }
@@ -141,6 +144,7 @@ The settings page gains a new top-level control for transcription mode. When "Lo
   [target.'cfg(target_os = "windows")'.dependencies]
   whisper-rs = { version = "0.16", features = ["vulkan"] }
   ```
+
 - Existing `rubato` crate is reused for 16 kHz resampling
 
 ### Trait Modification
@@ -158,6 +162,7 @@ The `WhisperContext` (loaded model) should be held in a global state similar to 
 ### Build System Impact
 
 whisper.cpp compiles from C/C++ source via `whisper-rs-sys`. This adds:
+
 - ~30-60 seconds to clean build time
 - Requires C/C++ toolchain on the build machine (already required for Tauri)
 - Metal SDK on macOS (included with Xcode CLI tools)
@@ -166,6 +171,7 @@ whisper.cpp compiles from C/C++ source via `whisper-rs-sys`. This adds:
 ### Tauri IPC Commands
 
 New Tauri commands needed:
+
 - `get_available_models()` — returns list of model tiers with download status
 - `download_model(model_id)` — initiates download, emits progress events
 - `cancel_download()` — cancels in-progress download

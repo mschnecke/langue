@@ -22,9 +22,7 @@ pub trait TranscriptionProvider: Send + Sync {
     ) -> Pin<Box<dyn Future<Output = Result<TranscriptionResult, AppError>> + Send + '_>>;
 
     /// Test the connection / API key validity
-    fn test_connection(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<bool, AppError>> + Send + '_>>;
+    fn test_connection(&self) -> Pin<Box<dyn Future<Output = Result<bool, AppError>> + Send + '_>>;
 
     /// Provider display name
     fn provider_name(&self) -> &str;

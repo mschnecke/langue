@@ -1,16 +1,16 @@
 {
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Default capabilities for Pisum Transcript",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "notification:default",
-    "notification:allow-notify",
-    "notification:allow-request-permission",
-    "autostart:default",
-    "autostart:allow-enable",
-    "autostart:allow-disable",
-    "autostart:allow-is-enabled"
-  ]
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Default capabilities for Pisum Transcript",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"notification:default",
+		"notification:allow-notify",
+		"notification:allow-request-permission",
+		"autostart:default",
+		"autostart:allow-enable",
+		"autostart:allow-disable",
+		"autostart:allow-is-enabled"
+	]
 }

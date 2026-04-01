@@ -115,13 +115,12 @@ pub fn unregister() -> Result<(), AppError> {
         MANAGER.with(|m| {
             let manager_ref = m.borrow();
             if let Some(manager) = manager_ref.as_ref() {
-                manager.unregister(hotkey).map_err(|e| {
-                    AppError::Hotkey(format!("Failed to unregister hotkey: {}", e))
-                })?;
+                manager
+                    .unregister(hotkey)
+                    .map_err(|e| AppError::Hotkey(format!("Failed to unregister hotkey: {}", e)))?;
             }
             Ok::<(), AppError>(())
         })?;
-
     }
 
     Ok(())
@@ -368,16 +367,14 @@ fn process_and_transcribe(
 }
 
 /// Transcribe via local Whisper engine
-fn transcribe_local(
-    samples: &[f32],
-    sample_rate: u32,
-    channels: u16,
-) -> Result<String, AppError> {
+fn transcribe_local(samples: &[f32], sample_rate: u32, channels: u16) -> Result<String, AppError> {
     // Reject dead silence (all zeros) before expensive Whisper inference.
     // Use a very low threshold to catch only truly silent/dead input devices.
     let rms = (samples.iter().map(|s| s * s).sum::<f32>() / samples.len() as f32).sqrt();
     if rms < 0.0001 {
-        return Err(AppError::Audio("No speech detected (audio is silent)".into()));
+        return Err(AppError::Audio(
+            "No speech detected (audio is silent)".into(),
+        ));
     }
 
     debug!("Resampling audio for Whisper");
@@ -418,11 +415,7 @@ fn transcribe_local(
 }
 
 /// Transcribe via cloud provider pool
-fn transcribe_cloud(
-    samples: &[f32],
-    sample_rate: u32,
-    channels: u16,
-) -> Result<String, AppError> {
+fn transcribe_cloud(samples: &[f32], sample_rate: u32, channels: u16) -> Result<String, AppError> {
     let preferred_format = {
         crate::SETTINGS
             .read()
@@ -436,8 +429,7 @@ fn transcribe_cloud(
             match audio::encoder::encode_to_opus(samples, sample_rate, channels) {
                 Ok(data) => (data, audio::encoder::opus_mime_type()),
                 Err(_) => {
-                    let wav_data =
-                        audio::encoder::encode_to_wav(samples, sample_rate, channels)?;
+                    let wav_data = audio::encoder::encode_to_wav(samples, sample_rate, channels)?;
                     (wav_data, audio::encoder::wav_mime_type())
                 }
             }
@@ -446,8 +438,7 @@ fn transcribe_cloud(
             match audio::encoder::encode_to_wav(samples, sample_rate, channels) {
                 Ok(data) => (data, audio::encoder::wav_mime_type()),
                 Err(_) => {
-                    let opus_data =
-                        audio::encoder::encode_to_opus(samples, sample_rate, channels)?;
+                    let opus_data = audio::encoder::encode_to_opus(samples, sample_rate, channels)?;
                     (opus_data, audio::encoder::opus_mime_type())
                 }
             }
@@ -463,7 +454,11 @@ fn transcribe_cloud(
     let rt = tokio::runtime::Runtime::new()
         .map_err(|e| AppError::Transcription(format!("Failed to create runtime: {}", e)))?;
 
-    info!(mime_type, audio_size = audio_data.len(), "Sending audio to cloud provider");
+    info!(
+        mime_type,
+        audio_size = audio_data.len(),
+        "Sending audio to cloud provider"
+    );
     let result = rt.block_on(pool.transcribe(&audio_data, mime_type, &system_prompt))?;
 
     info!("Cloud transcription complete");

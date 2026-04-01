@@ -53,7 +53,11 @@ pub fn load_settings() -> Result<AppSettings, AppError> {
     info!("Settings loaded successfully");
 
     // Validate active_preset_id: fall back to first built-in if invalid
-    if !settings.presets.iter().any(|p| p.id == settings.active_preset_id) {
+    if !settings
+        .presets
+        .iter()
+        .any(|p| p.id == settings.active_preset_id)
+    {
         let fallback_id = builtins
             .first()
             .map(|p| p.id.clone())

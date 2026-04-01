@@ -1,61 +1,61 @@
 {
-  "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2-schema/main/tauri.conf.json",
-  "productName": "Pisum Transcript",
-  "version": "1.0.4",
-  "identifier": "net.pisum.transcript",
-  "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist"
-  },
-  "app": {
-    "withGlobalTauri": false,
-    "macOSPrivateApi": true,
-    "windows": [
-      {
-        "title": "Pisum Transcript",
-        "width": 700,
-        "height": 540,
-        "minWidth": 540,
-        "minHeight": 400,
-        "resizable": true,
-        "maximizable": false,
-        "visible": false,
-        "center": true
-      }
-    ],
-    "security": {
-      "csp": null
-    }
-  },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "macOS": {
-      "signingIdentity": null,
-      "providerShortName": null,
-      "minimumSystemVersion": "10.15",
-      "infoPlist": "Info.plist"
-    },
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
-    "resources": [
-      "icons/tray-icon.png",
-      "icons/tray-icon-recording.png",
-      "icons/tray-icon-light.png",
-      "icons/tray-icon-dark.png",
-      "icons/tray-iconTemplate.png",
-      "icons/tray-iconTemplate@2x.png",
-      "icons/tray-iconTemplate-recording.png",
-      "icons/tray-iconTemplate-recording@2x.png",
-      "scripts/macos-postinstall.sh"
-    ]
-  },
-  "plugins": {}
+	"$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2-schema/main/tauri.conf.json",
+	"productName": "Pisum Transcript",
+	"version": "1.0.4",
+	"identifier": "net.pisum.transcript",
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"devUrl": "http://localhost:1420",
+		"beforeBuildCommand": "npm run build",
+		"frontendDist": "../dist"
+	},
+	"app": {
+		"withGlobalTauri": false,
+		"macOSPrivateApi": true,
+		"windows": [
+			{
+				"title": "Pisum Transcript",
+				"width": 700,
+				"height": 540,
+				"minWidth": 540,
+				"minHeight": 400,
+				"resizable": true,
+				"maximizable": false,
+				"visible": false,
+				"center": true
+			}
+		],
+		"security": {
+			"csp": null
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"macOS": {
+			"signingIdentity": null,
+			"providerShortName": null,
+			"minimumSystemVersion": "10.15",
+			"infoPlist": "Info.plist"
+		},
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		],
+		"resources": [
+			"icons/tray-icon.png",
+			"icons/tray-icon-recording.png",
+			"icons/tray-icon-light.png",
+			"icons/tray-icon-dark.png",
+			"icons/tray-iconTemplate.png",
+			"icons/tray-iconTemplate@2x.png",
+			"icons/tray-iconTemplate-recording.png",
+			"icons/tray-iconTemplate-recording@2x.png",
+			"scripts/macos-postinstall.sh"
+		]
+	},
+	"plugins": {}
 }

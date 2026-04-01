@@ -1,37 +1,37 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug Tauri",
-      "type": "lldb",
-      "request": "launch",
-      "program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript",
-      "windows": {
-        "program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript.exe"
-      },
-      "cwd": "${workspaceFolder}/src-tauri",
-      "env": {
-        "RUST_LOG": "debug",
-        "RUST_BACKTRACE": "1"
-      },
-      "preLaunchTask": "tauri: debug build",
-      "postDebugTask": "kill vite"
-    },
-    {
-      "name": "Tauri: Dev (full)",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npm",
-      "osx": {
-        "runtimeExecutable": "/usr/local/bin/npm"
-      },
-      "windows": {
-        "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd"
-      },
-      "runtimeArgs": ["run", "tauri:dev"],
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
-    }
-  ]
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug Tauri",
+			"type": "lldb",
+			"request": "launch",
+			"program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript",
+			"windows": {
+				"program": "${workspaceFolder}/src-tauri/target/debug/pisum-transcript.exe"
+			},
+			"cwd": "${workspaceFolder}/src-tauri",
+			"env": {
+				"RUST_LOG": "debug",
+				"RUST_BACKTRACE": "1"
+			},
+			"preLaunchTask": "tauri: debug build",
+			"postDebugTask": "kill vite"
+		},
+		{
+			"name": "Tauri: Dev (full)",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"osx": {
+				"runtimeExecutable": "/usr/local/bin/npm"
+			},
+			"windows": {
+				"runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd"
+			},
+			"runtimeArgs": ["run", "tauri:dev"],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"skipFiles": ["<node_internals>/**"]
+		}
+	]
 }

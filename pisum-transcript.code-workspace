@@ -1,17 +1,15 @@
 {
 	"folders": [
 		{
-			"path": "."
-		}
+			"path": ".",
+		},
 	],
 	"settings": {
-		"rust-analyzer.linkedProjects": [
-			"src-tauri/Cargo.toml"
-		],
+		"rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
 		"rust-analyzer.check.command": "clippy",
 		"rust-analyzer.cargo.features": "all",
 		"files.associations": {
-			"*.css": "tailwindcss"
-		}
-	}
+			"*.css": "tailwindcss",
+		},
+	},
 }

@@ -96,13 +96,10 @@ impl Drop for WhisperEngine {
 
 #[cfg(target_os = "macos")]
 fn spawn_worker(rx: mpsc::Receiver<WorkerCmd>) -> Result<(), AppError> {
-    use std::ffi::c_void;
+    use std::ffi::{c_char, c_void};
 
     extern "C" {
-        fn dispatch_queue_create(
-            label: *const u8,
-            attr: *const c_void,
-        ) -> *mut c_void;
+        fn dispatch_queue_create(label: *const c_char, attr: *const c_void) -> *mut c_void;
         fn dispatch_async_f(
             queue: *mut c_void,
             context: *mut c_void,
@@ -118,10 +115,7 @@ fn spawn_worker(rx: mpsc::Receiver<WorkerCmd>) -> Result<(), AppError> {
     let rx_ptr = Box::into_raw(Box::new(rx)) as *mut c_void;
 
     unsafe {
-        let queue = dispatch_queue_create(
-            b"net.pisum.whisper\0".as_ptr(),
-            std::ptr::null(),
-        );
+        let queue = dispatch_queue_create(c"net.pisum.whisper".as_ptr(), std::ptr::null());
         dispatch_async_f(queue, rx_ptr, trampoline);
     }
 
@@ -150,18 +144,16 @@ fn worker_loop(rx: mpsc::Receiver<WorkerCmd>) {
 
     while let Ok(cmd) = rx.recv() {
         match cmd {
-            WorkerCmd::Load {
-                model_path,
-                reply,
-            } => {
+            WorkerCmd::Load { model_path, reply } => {
                 let result = (|| -> Result<(), AppError> {
                     let params = WhisperContextParameters::default();
                     let path_str = model_path
                         .to_str()
                         .ok_or_else(|| AppError::Transcription("Invalid model path".into()))?;
-                    let new_ctx = WhisperContext::new_with_params(path_str, params).map_err(
-                        |e| AppError::Transcription(format!("Failed to load Whisper model: {e}")),
-                    )?;
+                    let new_ctx =
+                        WhisperContext::new_with_params(path_str, params).map_err(|e| {
+                            AppError::Transcription(format!("Failed to load Whisper model: {e}"))
+                        })?;
                     ctx = Some(new_ctx);
                     Ok(())
                 })();
@@ -182,8 +174,7 @@ fn worker_loop(rx: mpsc::Receiver<WorkerCmd>) {
                         AppError::Transcription(format!("Failed to create Whisper state: {e}"))
                     })?;
 
-                    let mut params =
-                        FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
+                    let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
                     if language == "auto" {
                         params.set_language(None);

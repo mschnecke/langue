@@ -1,22 +1,22 @@
 {
-  "rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
-  "rust-analyzer.check.command": "clippy",
-  "rust-analyzer.cargo.features": "all",
-  "[rust]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "rust-lang.rust-analyzer"
-  },
-  "[svelte]": {
-    "editor.defaultFormatter": "svelte.svelte-vscode"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "files.associations": {
-    "*.css": "tailwindcss"
-  },
-  "css.validate": false,
-  "editor.quickSuggestions": {
-    "strings": "on"
-  }
+	"rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
+	"rust-analyzer.check.command": "clippy",
+	"rust-analyzer.cargo.features": "all",
+	"[rust]": {
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "rust-lang.rust-analyzer"
+	},
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"css.validate": false,
+	"editor.quickSuggestions": {
+		"strings": "on"
+	}
 }
