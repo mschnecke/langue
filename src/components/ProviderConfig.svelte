@@ -192,9 +192,7 @@
 						disabled={!provider.apiKey}
 						class="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-50 disabled:text-gray-400"
 					>
-						<option value=""
-							>Default (gemini-2.5-flash-lite)</option
-						>
+						<option value="">Default (gemini-2.5-flash-lite)</option>
 						{#if loadingModels[provider.id]}
 							<option disabled>Loading models...</option>
 						{/if}

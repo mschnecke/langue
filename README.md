@@ -38,6 +38,20 @@ npm install            # Install dependencies
 npm run tauri:dev      # Start app in dev mode
 npm run tauri:build    # Build application
 npm run check          # Type-check Svelte/TypeScript
+npm run lint           # ESLint
+npm run format:check   # Check Prettier formatting
+```
+
+### Pre-CI Checks
+
+Run these before pushing to catch CI failures locally:
+
+```bash
+npm run lint                                              # ESLint
+npm run format:check                                      # Prettier
+npm run check                                             # Svelte/TypeScript
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check # Rust formatting
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings # Clippy lints
 ```
 
 ## Configuration

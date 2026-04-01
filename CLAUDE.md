@@ -19,6 +19,21 @@ npm run tauri:dev      # Start full Tauri app in dev mode
 npm run build          # Build frontend only
 npm run tauri:build    # Build complete application
 npm run check          # Run svelte-check type checking
+npm run lint           # Run ESLint
+npm run format:check   # Check Prettier formatting
+npm run format         # Fix Prettier formatting
+```
+
+### Pre-CI Checks
+
+Run these before pushing to catch CI failures locally:
+
+```bash
+npm run lint                                              # ESLint
+npm run format:check                                      # Prettier
+npm run check                                             # Svelte/TypeScript
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check # Rust formatting
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings # Clippy lints
 ```
 
 ### Prerequisites

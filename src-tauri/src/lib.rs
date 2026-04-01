@@ -565,7 +565,7 @@ pub fn run() {
                 .map(|p| {
                     let provider_type_str = match p.provider_type {
                         config::schema::ProviderType::Gemini => "gemini",
-                            }
+                    }
                     .to_string();
                     ProviderEntry {
                         api_key: p.api_key.clone(),
