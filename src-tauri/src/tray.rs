@@ -11,6 +11,11 @@ use tracing::{debug, info};
 
 static APP_HANDLE: Lazy<RwLock<Option<AppHandle>>> = Lazy::new(|| RwLock::new(None));
 
+/// Get a clone of the stored app handle (for dispatching to main thread from other modules).
+pub fn app_handle() -> Option<AppHandle> {
+    APP_HANDLE.read().unwrap().clone()
+}
+
 /// Set up the system tray icon and menu.
 pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // Store the app handle globally for notifications from any module
@@ -94,13 +99,18 @@ fn send_notification_impl(title: &str, message: &str, force: bool) {
 
     let handle = APP_HANDLE.read().unwrap();
     if let Some(app) = handle.as_ref() {
-        use tauri_plugin_notification::NotificationExt;
-        let _ = app
-            .notification()
-            .builder()
-            .title(title)
-            .body(message)
-            .show();
+        let title = title.to_string();
+        let message = message.to_string();
+        let app_inner = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            use tauri_plugin_notification::NotificationExt;
+            let _ = app_inner
+                .notification()
+                .builder()
+                .title(&title)
+                .body(&message)
+                .show();
+        });
     }
 }
 
@@ -108,10 +118,14 @@ fn send_notification_impl(title: &str, message: &str, force: bool) {
 pub fn set_tray_tooltip(preset_name: &str) {
     let handle = APP_HANDLE.read().unwrap();
     if let Some(app) = handle.as_ref() {
-        if let Some(tray) = app.tray_by_id("main") {
-            let tooltip = format!("Pisum Transcript — {}", preset_name);
-            let _ = tray.set_tooltip(Some(&tooltip));
-        }
+        let preset_name = preset_name.to_string();
+        let app_inner = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            if let Some(tray) = app_inner.tray_by_id("main") {
+                let tooltip = format!("Pisum Transcript — {}", preset_name);
+                let _ = tray.set_tooltip(Some(&tooltip));
+            }
+        });
     }
 }
 
@@ -119,26 +133,29 @@ pub fn set_tray_tooltip(preset_name: &str) {
 pub fn set_recording_state(recording: bool) {
     let handle = APP_HANDLE.read().unwrap();
     if let Some(app) = handle.as_ref() {
-        if let Some(tray) = app.tray_by_id("main") {
-            let icon_name = if recording {
-                get_recording_icon_name()
-            } else {
-                get_idle_icon_name()
-            };
-
-            // Try resource dir first, then dev paths
-            let icon = try_load_icon_by_name(app, &icon_name).unwrap_or_else(|| {
-                if recording {
-                    Image::from_bytes(include_bytes!("../icons/tray-icon-recording.png"))
-                        .expect("Failed to load embedded recording icon")
+        let app_inner = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            if let Some(tray) = app_inner.tray_by_id("main") {
+                let icon_name = if recording {
+                    get_recording_icon_name()
                 } else {
-                    Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
-                        .expect("Failed to load embedded tray icon")
-                }
-            });
+                    get_idle_icon_name()
+                };
 
-            let _ = tray.set_icon(Some(icon));
-        }
+                // Try resource dir first, then dev paths
+                let icon = try_load_icon_by_name(&app_inner, &icon_name).unwrap_or_else(|| {
+                    if recording {
+                        Image::from_bytes(include_bytes!("../icons/tray-icon-recording.png"))
+                            .expect("Failed to load embedded recording icon")
+                    } else {
+                        Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
+                            .expect("Failed to load embedded tray icon")
+                    }
+                });
+
+                let _ = tray.set_icon(Some(icon));
+            }
+        });
     }
 }
 
